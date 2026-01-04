@@ -1,169 +1,182 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pesanan Pembelian')
-@section('page-title', 'Procurement Audit')
+@section('title', 'PO Detail: ' . $purchaseOrder->po_number)
 
 @section('content')
-<div class="max-w-5xl mx-auto pb-20">
-  {{-- Top Action Bar --}}
-  <div class="mb-8 flex items-center justify-between">
-    <a href="{{ route('purchase-orders.index') }}"
-      class="group flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-900 transition-all">
-      <div
-        class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center group-hover:border-slate-900 transition-all shadow-sm">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-      </div>
-      Kembali ke Daftar PO
-    </a>
-
-    <div class="flex items-center gap-3">
-      <button
-        class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-        <i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF
-      </button>
-    </div>
-  </div>
-
-  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-    {{-- Header Detail --}}
-    <div
-      class="px-10 py-10 border-b border-slate-50 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-      <div class="relative z-10">
-        <div class="flex items-center gap-3 mb-2">
-          <span
-            class="text-[10px] font-black bg-indigo-600 text-white px-3 py-1 rounded-full tracking-widest uppercase shadow-lg shadow-indigo-100">Pesanan
-            Resmi</span>
-          <span class="text-slate-400 text-xs font-bold">{{ $purchaseOrder->po_date->format('d M Y') }}</span>
-        </div>
-        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase">{{ $purchaseOrder->po_number }}</h2>
-      </div>
-
-      @php
-      $statusMap = [
-      'DRAFT' => ['bg' => 'bg-slate-100', 'text' => 'text-slate-500', 'icon' => 'edit-3'],
-      'SUBMITTED' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'icon' => 'clock'],
-      'APPROVED' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-600', 'icon' => 'check-circle'],
-      'CLOSED' => ['bg' => 'bg-blue-50', 'text' => 'text-blue-600', 'icon' => 'lock'],
-      ];
-      $curr = $statusMap[$purchaseOrder->status] ?? $statusMap['DRAFT'];
-      @endphp
-
-      <div
-        class="flex items-center gap-4 px-6 py-4 rounded-[2rem] {{ $curr['bg'] }} border border-white shadow-inner relative z-10">
-        <i data-lucide="{{ $curr['icon'] }}" class="w-6 h-6 {{ $curr['text'] }}"></i>
-        <div class="flex flex-col">
-          <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 opacity-60">Status PO</span>
-          <span class="text-sm font-black {{ $curr['text'] }} tracking-tight">{{ $purchaseOrder->status }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="p-10">
-      {{-- Info Cards --}}
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Supplier / Vendor</p>
-          <div class="flex items-center gap-3">
-            <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i>
-            <span class="text-sm font-bold text-slate-900">{{ $purchaseOrder->supplier->name }}</span>
-          </div>
-        </div>
-
-        <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Gudang Penerima</p>
-          <div class="flex items-center gap-3">
-            <i data-lucide="warehouse" class="w-5 h-5 text-indigo-500"></i>
-            <span class="text-sm font-bold text-slate-900">{{ $purchaseOrder->warehouse->name }}</span>
-          </div>
-        </div>
-
-        <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Referensi PR</p>
-          <div class="flex items-center gap-3">
-            <i data-lucide="file-text" class="w-5 h-5 text-indigo-500"></i>
-            <span class="text-sm font-bold text-slate-900 underline decoration-indigo-200">
-              {{ $purchaseOrder->purchaseRequest->pr_number }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {{-- Items Table --}}
-      <div class="space-y-4 mb-10">
-        <div class="flex items-center gap-3">
-          <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Daftar Pesanan & Status
-            Kedatangan</h3>
-          <div class="h-px flex-1 bg-slate-100"></div>
-        </div>
-
-        <div class="border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm">
-          <table class="w-full text-sm text-left border-separate border-spacing-0">
-            <thead class="bg-slate-50/80 text-slate-400 uppercase text-[10px] font-black tracking-widest">
-              <tr>
-                <th class="px-8 py-4">Item Produk</th>
-                <th class="px-6 py-4 text-center">Dipesan</th>
-                <th class="px-6 py-4 text-center">Diterima</th>
-                <th class="px-8 py-4 text-right">Sisa (Outstanding)</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50 text-slate-700">
-              @foreach($purchaseOrder->items as $item)
-              @php $remaining = $item->quantity - $item->received_quantity; @endphp
-              <tr class="hover:bg-slate-50/30 transition-all">
-                <td class="px-8 py-5">
-                  <span class="font-bold text-slate-900">{{ $item->product->name }}</span>
-                </td>
-                <td class="px-6 py-5 text-center font-bold">
-                  {{ number_format($item->quantity, 2) }}
-                </td>
-                <td class="px-6 py-5 text-center">
-                  <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg font-bold">
-                    {{ number_format($item->received_quantity, 2) }}
-                  </span>
-                </td>
-                <td class="px-8 py-5 text-right">
-                  <span class="font-black {{ $remaining > 0 ? 'text-rose-500' : 'text-slate-400' }}">
-                    {{ number_format($remaining, 2) }}
-                  </span>
-                </td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-
-
-      {{-- Footer Action --}}
-      <div class="pt-10 border-t border-slate-50 flex items-center justify-between">
-        <div class="text-xs text-slate-400 font-medium">
-          PO Terbit secara sistemik dan sah tanpa tanda tangan basah jika status <strong>APPROVED</strong>.
+<div class="max-w-6xl mx-auto p-4 sm:p-8 pb-20">
+    {{-- Top Navigation & Utility --}}
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 no-print">
+        <div>
+            <a href="{{ route('purchase-orders.index') }}" class="group text-slate-400 hover:text-slate-900 flex items-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] mb-4 transition-all">
+                <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i> Kembali ke Daftar PO
+            </a>
+            <div class="flex items-center gap-4">
+                <h1 class="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Detail Pesanan</h1>
+                <div class="h-8 w-[2px] bg-slate-200 rotate-12"></div>
+                <span class="px-4 py-1.5 rounded-full text-[10px] font-black border bg-indigo-50 text-indigo-600 border-indigo-100 uppercase tracking-widest shadow-sm">
+                    {{ $purchaseOrder->status }}
+                </span>
+            </div>
         </div>
 
         <div class="flex items-center gap-3">
-          @if($purchaseOrder->status === 'DRAFT')
-          <form method="POST" action="{{ route('purchase-orders.submit',$purchaseOrder) }}">
-            @csrf
-            <button
-              class="px-8 py-4 bg-amber-500 text-white text-sm font-bold rounded-2xl hover:bg-amber-600 shadow-xl shadow-amber-100 transition-all flex items-center gap-2">
-              <i data-lucide="send" class="w-4 h-4"></i> Kirim PO ke Supplier
+            <button onclick="window.print()" class="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all text-xs shadow-xl shadow-slate-200 flex items-center gap-3 uppercase tracking-widest">
+                <i data-lucide="printer" class="w-4 h-4"></i> Cetak Dokumen Resmi
             </button>
-          </form>
-          @endif
-
-          @if($purchaseOrder->status === 'SUBMITTED')
-          <form method="POST" action="{{ route('purchase-orders.approve',$purchaseOrder) }}">
-            @csrf
-            <button
-              class="px-10 py-4 bg-emerald-600 text-white text-sm font-bold rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-100 transition-all flex items-center gap-2">
-              <i data-lucide="check-circle" class="w-4 h-4"></i> Setujui PO
-            </button>
-          </form>
-          @endif
         </div>
-      </div>
     </div>
-  </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {{-- Left Side: Main Document --}}
+        <div class="lg:col-span-3 space-y-8">
+            <div class="bg-white rounded-[3rem] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.02)] overflow-hidden">
+                {{-- Document Header --}}
+                <div class="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start gap-8 bg-slate-50/30">
+                    <div class="space-y-4">
+                        <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl">E</div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Identifikasi Dokumen</p>
+                            <p class="text-2xl font-black text-slate-900 tracking-tighter">{{ $purchaseOrder->po_number }}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 text-right">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tanggal Terbit</p>
+                            <p class="text-sm font-black text-slate-900 uppercase italic">{{ \Carbon\Carbon::parse($purchaseOrder->po_date)->format('d M Y') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metode Pengiriman</p>
+                            <p class="text-sm font-black text-slate-900 uppercase italic">FOB Destination</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Table Section --}}
+                <div class="p-2">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] uppercase font-black text-slate-400 tracking-[0.2em]">
+                                <th class="px-8 py-6">Deskripsi Produk</th>
+                                <th class="px-4 py-6 text-center">Volume</th>
+                                <th class="px-8 py-6 text-right">Harga Satuan</th>
+                                <th class="px-8 py-6 text-right">Total Nilai</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @foreach($purchaseOrder->items as $item)
+                            <tr class="group">
+                                <td class="px-8 py-6">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-black text-slate-900 uppercase italic tracking-tight group-hover:text-indigo-600 transition-colors">{{ $item->product->name }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400 mt-1">SKU: {{ $item->product->code }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-6 text-center text-slate-600 font-black italic">
+                                    {{ number_format($item->qty, 0) }} <span class="text-[9px] uppercase font-bold text-slate-400 ml-1">{{ $item->product->unit->name }}</span>
+                                </td>
+                                <td class="px-8 py-6 text-right font-bold text-slate-600">
+                                    <span class="text-[10px] mr-1 italic text-slate-300">IDR</span>{{ number_format($item->unit_price, 0, ',', '.') }}
+                                </td>
+                                <td class="px-8 py-6 text-right font-black text-slate-900 tracking-tighter">
+                                    <span class="text-[10px] mr-1 italic text-slate-300">IDR</span>{{ number_format($item->total_price, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Financial Summary --}}
+                <div class="p-10 bg-slate-900 text-white flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div class="hidden md:block">
+                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] mb-2 font-mono italic text-white/50">Official Purchase Order Certificate</p>
+                        <div class="flex gap-4 opacity-30">
+                            <i data-lucide="qr-code" class="w-12 h-12"></i>
+                            <i data-lucide="shield-check" class="w-12 h-12"></i>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-80 space-y-3">
+                        <div class="flex justify-between items-center text-white/50 italic font-bold">
+                            <span class="text-[10px] font-black uppercase tracking-widest">Subtotal Nilai</span>
+                            <span class="text-sm">Rp {{ number_format($purchaseOrder->subtotal, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-white/50 italic font-bold">
+                            <span class="text-[10px] font-black uppercase tracking-widest">Pajak ({{ $purchaseOrder->tax_percent }}%)</span>
+                            <span class="text-sm">Rp {{ number_format($purchaseOrder->tax_amount, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Total Tagihan</span>
+                            <span class="text-3xl font-black text-emerald-400 tracking-tighter italic">Rp {{ number_format($purchaseOrder->grand_total, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="flex-1 bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4"></i> Catatan Syarat & Ketentuan
+                    </h4>
+                    <p class="text-xs text-slate-600 leading-relaxed font-bold italic">
+                        {{ $purchaseOrder->note ?? 'Mohon kirimkan barang sesuai dengan spesifikasi yang tertera. Faktur tagihan harus melampirkan nomor PO ini.' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Right Side: Info Panel --}}
+        <div class="space-y-6 no-print">
+            {{-- Supplier Card --}}
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <i data-lucide="truck" class="w-20 h-20 -mr-6 -mt-6"></i>
+                </div>
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 relative z-10">Data Supplier</h3>
+                <div class="relative z-10">
+                    <p class="text-xl font-black text-slate-900 uppercase italic tracking-tighter">{{ $purchaseOrder->supplier->name }}</p>
+                    <p class="text-[10px] font-bold text-indigo-600 uppercase mt-1 tracking-widest font-mono">{{ $purchaseOrder->supplier->code }}</p>
+                    
+                    <div class="mt-6 pt-6 border-t border-slate-50 space-y-4">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-slate-300 mt-1"></i>
+                            <p class="text-[11px] text-slate-500 font-bold leading-relaxed italic">{{ $purchaseOrder->supplier->address }}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="mail" class="w-4 h-4 text-slate-300"></i>
+                            <p class="text-[11px] text-slate-900 font-black italic">{{ $purchaseOrder->supplier->email }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Reference Card --}}
+            <div class="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                <div class="absolute -bottom-4 -right-4 opacity-10">
+                    <i data-lucide="file-check" class="w-24 h-24"></i>
+                </div>
+                <h3 class="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] mb-4">Referensi PR</h3>
+                <p class="text-sm font-black italic tracking-tighter uppercase">{{ $purchaseOrder->purchaseRequest->pr_number }}</p>
+                <div class="mt-4 flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-indigo-300 animate-pulse"></div>
+                    <span class="text-[9px] font-black uppercase text-indigo-100">Dokumen Telah Disinkronisasi</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+{{-- Print Styles --}}
+<style>
+    @media print {
+        header, aside, nav, .no-print { display: none !important; }
+        .max-w-6xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        body { background: white !important; font-size: 12pt; }
+        .bg-slate-900 { background-color: #0f172a !important; color: white !important; -webkit-print-color-adjust: exact; }
+        .bg-slate-50\/30 { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; }
+        .text-emerald-400 { color: #34d399 !important; -webkit-print-color-adjust: exact; }
+        .rounded-[3rem], .rounded-2xl, .rounded-xl { border-radius: 10px !important; }
+        table { border: 1px solid #e2e8f0; }
+        th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+    </div>
+</style>
 @endsection

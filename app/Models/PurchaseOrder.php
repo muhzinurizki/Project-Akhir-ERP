@@ -2,91 +2,56 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PurchaseOrder extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'po_number',
-        'po_date',
         'purchase_request_id',
         'supplier_id',
-        'warehouse_id',
+        'user_id',
+        'po_date',
+        'subtotal',
+        'tax_percent',
+        'tax_amount',
+        'grand_total',
         'status',
-        'created_by',
-        'approved_by',
-        'approved_at',
-        'note',
+        'note'
     ];
 
-    protected $casts = [
-        'po_date' => 'date',
-        'approved_at' => 'datetime',
-    ];
-
-    /* ================= Relations ================= */
-
+    // Relasi ke detail item PO
     public function items()
     {
         return $this->hasMany(PurchaseOrderItem::class);
     }
 
-    public function purchaseRequest()
-    {
-        return $this->belongsTo(PurchaseRequest::class);
-    }
-
+    // Relasi ke Supplier
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
     }
 
-    public function warehouse()
+    // Relasi ke PR asal
+    public function purchaseRequest()
     {
-        return $this->belongsTo(Warehouse::class);
+        return $this->belongsTo(PurchaseRequest::class);
     }
 
-    public function creator()
+    // Relasi ke pembuat PO (User)
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 
-    public function approver()
+    // Fungsi otomatis generate Nomor PO (Contoh: PO-20231027-0001)
+    public static function generatePoNumber()
     {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
-
-    /* ================= Lifecycle ================= */
-
-    public function submit()
-    {
-        if ($this->status !== 'DRAFT') {
-            throw new \Exception('PO tidak dapat disubmit');
-        }
-
-        $this->update(['status' => 'SUBMITTED']);
-    }
-
-    public function approve(int $userId)
-    {
-        if ($this->status !== 'SUBMITTED') {
-            throw new \Exception('PO tidak dapat di-approve');
-        }
-
-        $this->update([
-            'status' => 'APPROVED',
-            'approved_by' => $userId,
-            'approved_at' => now(),
-        ]);
-    }
-
-    public function isEditable(): bool
-    {
-        return $this->status === 'DRAFT';
-    }
-
-    public function isClosed(): bool
-    {
-        return $this->status === 'CLOSED';
+        $date = now()->format('Ymd');
+        $count = self::whereDate('created_at', now()->today())->count() + 1;
+        return "PO-{$date}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 }

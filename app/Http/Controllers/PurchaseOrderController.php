@@ -3,91 +3,107 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequest;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
     public function index()
     {
-        $pos = PurchaseOrder::with(['supplier', 'purchaseRequest'])
+        $pos = PurchaseOrder::with(['supplier', 'user', 'purchaseRequest'])
             ->latest()
             ->paginate(15);
 
         return view('purchase-orders.index', compact('pos'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('purchase-orders.create', [
-            'purchaseRequests' => PurchaseRequest::where('status', 'APPROVED')->get(),
-            'suppliers' => Supplier::where('is_active', true)->get(),
+        // Pastikan ada ID PR yang dikirim dari halaman list APPROVED PR
+        $request->validate([
+            'pr_id' => 'required|exists:purchase_requests,id',
         ]);
+
+        // Cari PR yang statusnya APPROVED dan belum pernah dibuatkan PO
+        $pr = PurchaseRequest::with('items.product.unit')
+            ->where('status', 'APPROVED')
+            ->whereDoesntHave('purchaseOrder')
+            ->findOrFail($request->pr_id);
+
+        $suppliers = Supplier::where('is_active', true)->get();
+        $po_number = PurchaseOrder::generatePoNumber();
+
+        return view('purchase-orders.create', compact('pr', 'suppliers', 'po_number'));
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'purchase_request_id' => 'required|exists:purchase_requests,id',
-            'supplier_id' => 'required|exists:suppliers,id',
-            'po_date' => 'required|date',
-            'note' => 'nullable|string',
-        ]);
+        // Tambahkan ini di baris paling atas untuk melihat apa yang dikirim dari form
+        // dd($request->all());
 
-        DB::transaction(function () use ($data) {
+        try {
+            DB::beginTransaction();
 
-            $pr = PurchaseRequest::with('items')->findOrFail($data['purchase_request_id']);
+            // 1. Validasi manual untuk memastikan user login
+            if (! auth()->check()) {
+                throw new \Exception('Anda harus login untuk membuat PO.');
+            }
 
-            $po = PurchaseOrder::create([
-                'po_number' => $this->generatePoNumber(),
-                'po_date' => $data['po_date'],
-                'purchase_request_id' => $pr->id,
-                'supplier_id' => $data['supplier_id'],
-                'warehouse_id' => $pr->warehouse_id,
-                'status' => 'DRAFT',
-                'created_by' => Auth::id(),
-                'note' => $data['note'] ?? null,
-            ]);
+            $subtotal = 0;
+            foreach ($request->items as $item) {
+                $subtotal += ($item['qty'] * $item['unit_price']);
+            }
 
-            foreach ($pr->items as $item) {
-                PurchaseOrderItem::create([
+            $taxAmount = ($subtotal * $request->tax_percent) / 100;
+            $grandTotal = $subtotal + $taxAmount;
+
+            // 2. Gunakan forceFill untuk memastikan data dipaksa masuk
+            $po = new \App\Models\PurchaseOrder;
+            $po->po_number = \App\Models\PurchaseOrder::generatePoNumber();
+            $po->purchase_request_id = $request->purchase_request_id;
+            $po->supplier_id = $request->supplier_id;
+            $po->user_id = auth()->id();
+            $po->po_date = $request->po_date;
+            $po->subtotal = $subtotal;
+            $po->tax_percent = $request->tax_percent;
+            $po->tax_amount = $taxAmount;
+            $po->grand_total = $grandTotal;
+            $po->status = 'SENT';
+            $po->note = $request->note;
+            $po->save(); // Simpan Header
+
+            // 3. Simpan Detail
+            foreach ($request->items as $item) {
+                \App\Models\PurchaseOrderItem::create([
                     'purchase_order_id' => $po->id,
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
+                    'product_id' => $item['product_id'],
+                    'qty' => $item['qty'],
+                    'unit_price' => $item['unit_price'],
+                    'total_price' => $item['qty'] * $item['unit_price'],
                 ]);
             }
-        });
 
-        return redirect()->route('purchase-orders.index')
-            ->with('success', 'Purchase Order berhasil dibuat');
+            // 4. Update Status PR
+            \App\Models\PurchaseRequest::where('id', $request->purchase_request_id)
+                ->update(['status' => 'COMPLETED']);
+
+            DB::commit();
+
+            return redirect()->route('purchase-orders.index')->with('success', 'PO Berhasil!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // INI AKAN MENUNJUKKAN ERROR SEBENARNYA
+            dd('ERROR DATABASE: '.$e->getMessage());
+        }
     }
 
     public function show(PurchaseOrder $purchaseOrder)
     {
-        $purchaseOrder->load(['items.product', 'supplier', 'purchaseRequest']);
+        $purchaseOrder->load(['supplier', 'items.product.unit', 'purchaseRequest', 'user']);
+
         return view('purchase-orders.show', compact('purchaseOrder'));
-    }
-
-    public function submit(PurchaseOrder $purchaseOrder)
-    {
-        $purchaseOrder->submit();
-        return back()->with('success', 'PO disubmit');
-    }
-
-    public function approve(PurchaseOrder $purchaseOrder)
-    {
-        $purchaseOrder->approve(Auth::id());
-        return back()->with('success', 'PO di-approve');
-    }
-
-    private function generatePoNumber(): string
-    {
-        $date = now()->format('Ymd');
-        $count = PurchaseOrder::whereDate('created_at', today())->count() + 1;
-        return 'PO-' . $date . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
 }

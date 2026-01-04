@@ -6,26 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class PurchaseOrderItem extends Model
 {
-  protected $fillable = [
-    'purchase_order_id',
-    'product_id',
-    'quantity',
-    'received_quantity',
-    'note',
-  ];
+    // Tanpa ini, $po->items()->create() akan diabaikan oleh Laravel
+    protected $fillable = [
+        'purchase_order_id', 
+        'product_id', 
+        'qty', 
+        'unit_price', 
+        'total_price'
+    ];
 
-  public function purchaseOrder()
-  {
-    return $this->belongsTo(PurchaseOrder::class);
-  }
-
-  public function product()
-  {
-    return $this->belongsTo(Product::class);
-  }
-
-  public function remainingQuantity(): float
-  {
-    return (float) ($this->quantity - $this->received_quantity);
-  }
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
