@@ -21,13 +21,13 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'code' => 'required|unique:suppliers,code',
-            'name' => 'required|string|max:255',
+            'code'           => 'required|unique:suppliers,code',
+            'name'           => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email',
-            'address' => 'nullable|string',
-            'is_active' => 'boolean',
+            'phone'          => 'nullable|string|max:50',
+            'email'          => 'nullable|email',
+            'address'        => 'nullable|string',
+            'is_active'      => 'boolean',
         ]);
 
         Supplier::create($validated);
@@ -45,13 +45,13 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $validated = $request->validate([
-            'code' => 'required|unique:suppliers,code,' . $supplier->id,
-            'name' => 'required|string|max:255',
+            'code'           => 'required|unique:suppliers,code,' . $supplier->id,
+            'name'           => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email',
-            'address' => 'nullable|string',
-            'is_active' => 'boolean',
+            'phone'          => 'nullable|string|max:50',
+            'email'          => 'nullable|email',
+            'address'        => 'nullable|string',
+            'is_active'      => 'boolean',
         ]);
 
         $supplier->update($validated);
@@ -59,5 +59,20 @@ class SupplierController extends Controller
         return redirect()
             ->route('suppliers.index')
             ->with('success', 'Supplier berhasil diperbarui');
+    }
+
+    public function destroy(Supplier $supplier)
+    {
+        try {
+            // Cek jika supplier punya relasi ke tabel lain (misal: PO) sebelum hapus
+            // if ($supplier->purchaseOrders()->exists()) {
+            //     return back()->with('error', 'Supplier tidak bisa dihapus karena memiliki transaksi terkait.');
+            // }
+
+            $supplier->delete();
+            return redirect()->route('suppliers.index')->with('success', 'Supplier berhasil dihapus');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
+        }
     }
 }
