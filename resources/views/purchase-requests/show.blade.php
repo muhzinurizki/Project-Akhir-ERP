@@ -1,169 +1,147 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Pengajuan')
-@section('page-title', 'Procurement Audit')
+@section('title', 'Detail PR: ' . $pr->pr_number)
 
 @section('content')
-<div class="max-w-5xl mx-auto pb-20">
-  {{-- Navigation & Actions --}}
-  <div class="mb-8 flex items-center justify-between">
-    <a href="{{ route('purchase-requests.index') }}"
-      class="group flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-900 transition-all">
-      <div
-        class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center group-hover:border-slate-900 transition-all shadow-sm">
-        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-      </div>
-      Kembali ke Daftar
-    </a>
+<div class="max-w-7xl mx-auto p-8 pb-20">
 
-    <div class="flex items-center gap-3">
-      @if($purchaseRequest->status === 'APPROVED')
-      <button
-        class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-        <i data-lucide="printer" class="w-4 h-4"></i> Cetak PDF
-      </button>
-      @endif
-    </div>
-  </div>
-
-  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-    {{-- Header Detail --}}
-    <div
-      class="px-10 py-10 border-b border-slate-50 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-      <div class="relative z-10">
-        <div class="flex items-center gap-3 mb-2">
-          <span
-            class="text-[10px] font-black bg-slate-900 text-white px-3 py-1 rounded-full tracking-widest uppercase">Dokumen
-            Internal</span>
-          <span class="text-slate-400 text-xs font-bold">{{ $purchaseRequest->request_date->format('d M Y') }}</span>
-        </div>
-        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase">{{ $purchaseRequest->pr_number }}
-        </h2>
-      </div>
-
-      @php
-      $statusMap = [
-      'DRAFT' => ['bg' => 'bg-slate-100', 'text' => 'text-slate-500', 'icon' => 'edit-3'],
-      'SUBMITTED' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'icon' => 'send'],
-      'APPROVED' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-600', 'icon' => 'check-circle'],
-      'REJECTED' => ['bg' => 'bg-rose-50', 'text' => 'text-rose-600', 'icon' => 'x-circle'],
-      ];
-      $curr = $statusMap[$purchaseRequest->status] ?? $statusMap['DRAFT'];
-      @endphp
-
-      <div
-        class="flex items-center gap-4 px-6 py-4 rounded-[2rem] {{ $curr['bg'] }} border border-white shadow-inner relative z-10">
-        <i data-lucide="{{ $curr['icon'] }}" class="w-6 h-6 {{ $curr['text'] }}"></i>
-        <div class="flex flex-col">
-          <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 opacity-60">Status Saat
-            Ini</span>
-          <span class="text-sm font-black {{ $curr['text'] }} tracking-tight">{{ $purchaseRequest->status }}</span>
-        </div>
-      </div>
-
-      <i data-lucide="file-text"
-        class="w-40 h-40 text-slate-200 opacity-20 absolute -right-10 -bottom-10 rotate-12"></i>
-    </div>
-
-    <div class="p-10">
-      {{-- Info Cards --}}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100 flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center">
-            <i data-lucide="warehouse" class="w-6 h-6 text-indigo-500"></i>
-          </div>
-          <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gudang Tujuan</p>
-            <p class="text-sm font-bold text-slate-900">{{ $purchaseRequest->warehouse->name }}</p>
-          </div>
-        </div>
-
-        <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100 flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center">
-            <i data-lucide="user" class="w-6 h-6 text-indigo-500"></i>
-          </div>
-          <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Diajukan Oleh</p>
-            <p class="text-sm font-bold text-slate-900">{{ $purchaseRequest->requester->name }}</p>
-          </div>
-        </div>
-      </div>
-
-      {{-- Items Table --}}
-      <div class="space-y-4 mb-10">
+    {{-- Header Navigation --}}
+    <div class="flex items-center justify-between mb-8">
+        <a href="{{ route('purchase-requests.index') }}" class="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-bold text-sm">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Kembali ke Daftar
+        </a>
         <div class="flex items-center gap-3">
-          <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Rincian Barang</h3>
-          <div class="h-px flex-1 bg-slate-100"></div>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Dokumen:</span>
+            @php
+                $statusColors = [
+                    'PENDING' => 'bg-amber-100 text-amber-700 border-amber-200',
+                    'APPROVED' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                    'REJECTED' => 'bg-rose-100 text-rose-700 border-rose-200',
+                ];
+                $color = $statusColors[$pr->status] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+            @endphp
+            <span class="px-4 py-1 rounded-full border text-[10px] font-black uppercase tracking-tighter {{ $color }}">
+                {{ $pr->status }}
+            </span>
         </div>
-
-        <div class="border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm">
-          <table class="w-full text-sm text-left border-separate border-spacing-0">
-            <thead class="bg-slate-50/80 text-slate-400 uppercase text-[10px] font-black tracking-widest">
-              <tr>
-                <th class="px-8 py-4">Item Produk</th>
-                <th class="px-6 py-4 text-center">Kuantitas</th>
-                <th class="px-8 py-4">Catatan Khusus</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-              @foreach($purchaseRequest->items as $item)
-              <tr class="group transition-all">
-                <td class="px-8 py-5">
-                  <span class="font-bold text-slate-900">{{ $item->product->name }}</span>
-                </td>
-                <td class="px-6 py-5 text-center">
-                  <span class="px-4 py-1.5 rounded-lg bg-slate-100 font-black text-slate-900">
-                    {{ number_format($item->quantity, 4) }}
-                  </span>
-                </td>
-                <td class="px-8 py-5">
-                  <span class="text-slate-500 font-medium italic">{{ $item->note ?? '-' }}</span>
-                </td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {{-- Action Workflows --}}
-      <div class="pt-10 border-t border-slate-50 flex flex-wrap items-center justify-between gap-6">
-        <div class="text-sm text-slate-400 font-medium italic">
-          <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
-          Tindakan pada dokumen ini akan tercatat dalam log audit sistem.
-        </div>
-
-        <div class="flex items-center gap-3">
-          @if($purchaseRequest->status === 'DRAFT')
-          <form method="POST" action="{{ route('purchase-requests.submit', $purchaseRequest) }}">
-            @csrf
-            <button
-              class="px-8 py-4 bg-amber-500 text-white text-sm font-bold rounded-2xl hover:bg-amber-600 shadow-xl shadow-amber-100 transition-all flex items-center gap-2">
-              <i data-lucide="send" class="w-4 h-4 text-white"></i> Submit Pengajuan
-            </button>
-          </form>
-          @endif
-
-          @if($purchaseRequest->status === 'SUBMITTED')
-          <form method="POST" action="{{ route('purchase-requests.reject', $purchaseRequest) }}">
-            @csrf
-            <button
-              class="px-8 py-4 text-rose-600 text-sm font-bold rounded-2xl hover:bg-rose-50 transition-all border border-rose-100">
-              Reject Pengajuan
-            </button>
-          </form>
-
-          <form method="POST" action="{{ route('purchase-requests.approve', $purchaseRequest) }}">
-            @csrf
-            <button
-              class="px-10 py-4 bg-emerald-600 text-white text-sm font-bold rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-100 transition-all flex items-center gap-2">
-              <i data-lucide="check-circle" class="w-4 h-4 text-white"></i> Approve Sekarang
-            </button>
-          </form>
-          @endif
-        </div>
-      </div>
     </div>
-  </div>
+
+    {{-- Main Grid --}}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        {{-- Kolom Kiri: Informasi Utama (4 Cols) --}}
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-black text-slate-900 leading-tight uppercase tracking-tighter">{{ $pr->pr_number }}</h1>
+                    <p class="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest">Dibuat pada {{ \Carbon\Carbon::parse($pr->request_date)->format('d M Y') }}</p>
+                </div>
+
+                <div class="space-y-6 border-t border-slate-100 pt-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pemohon</label>
+                        <div class="flex items-center gap-3 mt-2">
+                            <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white text-xs font-black">
+                                {{ substr($pr->user->name, 0, 2) }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-slate-900">{{ $pr->user->name }}</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase">{{ $pr->user->department ?? 'Staff' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Catatan</label>
+                        <p class="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50 p-4 rounded-2xl mt-2 border border-slate-100 italic">
+                            "{{ $pr->note ?? 'Tidak ada catatan tambahan.' }}"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Action Buttons (Hanya jika PENDING) --}}
+            @if($pr->status === 'PENDING')
+            <div class="bg-slate-900 rounded-[2rem] p-8 shadow-xl shadow-slate-200">
+                <h3 class="text-white text-xs font-black uppercase tracking-widest mb-6">Butuh Persetujuan?</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <form action="{{ route('purchase-requests.update-status', $pr->id) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <input type="hidden" name="status" value="APPROVED">
+                        <button type="submit" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-900/20">
+                            Setujui Request
+                        </button>
+                    </form>
+
+                    <form action="{{ route('purchase-requests.update-status', $pr->id) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <input type="hidden" name="status" value="REJECTED">
+                        <button type="submit" class="w-full py-4 bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                            Tolak Permintaan
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endif
+        </div>
+
+        {{-- Kolom Kanan: Daftar Item (8 Cols) --}}
+        <div class="lg:col-span-8">
+            <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">Detail Item Barang</h3>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">{{ $pr->items->count() }} Baris Data</span>
+                </div>
+
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-white border-b border-slate-100">
+                            <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Deskripsi Produk</th>
+                            <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($pr->items as $item)
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-8 py-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-3 bg-slate-100 rounded-xl">
+                                        <i data-lucide="package" class="w-5 h-5 text-slate-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-black text-slate-900 uppercase tracking-tight">{{ $item->product->name }}</p>
+                                        <p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5">{{ $item->product->code }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <span class="text-lg font-black text-slate-900 tracking-tighter">{{ number_format($item->quantity ?? $item->qty, 0) }}</span>
+                                <span class="text-[10px] font-black text-slate-400 uppercase ml-1">{{ $item->unit_name ?? 'Unit' }}</span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                {{-- Summary Footer --}}
+                <div class="px-8 py-10 bg-slate-50 border-t border-slate-100">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="info" class="w-5 h-5 text-slate-300"></i>
+                            <p class="text-xs font-medium text-slate-500 max-w-xs">
+                                Dokumen ini dihasilkan secara otomatis oleh sistem ERP dan berlaku sebagai bukti permintaan resmi.
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verifikasi Digital</p>
+                            <p class="text-sm font-black text-slate-900 mt-1 uppercase tracking-tighter">System Verified ✅</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 @endsection

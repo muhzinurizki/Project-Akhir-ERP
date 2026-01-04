@@ -3,100 +3,48 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseRequest extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'pr_number',
         'request_date',
-        'warehouse_id',
-        'status',
-        'requested_by',
-        'approved_by',
-        'approved_at',
+        'user_id',
         'note',
+        'status'
     ];
 
-    protected $casts = [
-        'request_date' => 'date',
-        'approved_at' => 'datetime',
-    ];
+    // Relasi ke User (Pembuat PR)
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    /* =======================
-     |  RELATIONS
-     ======================= */
-
-    public function items()
+    // Relasi ke Item Detail
+    public function items(): HasMany
     {
         return $this->hasMany(PurchaseRequestItem::class);
     }
 
-    public function warehouse()
+    // Logika Generate Nomor PR Otomatis: PR/20260104/0001
+    public static function generatePrNumber()
     {
-        return $this->belongsTo(Warehouse::class);
+        $date = now()->format('Ymd');
+        $count = self::whereDate('created_at', now()->today())->count() + 1;
+        $formattedCount = str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        return "PR/{$date}/{$formattedCount}";
     }
 
-    public function requester()
-    {
-        return $this->belongsTo(User::class, 'requested_by');
-    }
+    public function approve()
+{
+    $this->update(['status' => 'APPROVED']);
+}
 
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
-
-    /* =======================
-     |  BUSINESS LOGIC
-     ======================= */
-
-    public function isEditable(): bool
-    {
-        return $this->status === 'DRAFT';
-    }
-
-    public function canBeApproved(): bool
-    {
-        return $this->status === 'SUBMITTED';
-    }
-
-    public function submit(): void
-    {
-        if ($this->status !== 'DRAFT') {
-            throw new \Exception('PR hanya bisa disubmit dari status DRAFT');
-        }
-
-        $this->update([
-            'status' => 'SUBMITTED',
-        ]);
-    }
-
-    public function approve(int $userId): void
-    {
-        if ($this->status !== 'SUBMITTED') {
-            throw new \Exception('PR hanya bisa di-approve dari status SUBMITTED');
-        }
-
-        $this->update([
-            'status' => 'APPROVED',
-            'approved_by' => $userId,
-            'approved_at' => now(),
-        ]);
-    }
-
-    public function reject(int $userId): void
-    {
-        if ($this->status !== 'SUBMITTED') {
-            throw new \Exception('PR hanya bisa di-reject dari status SUBMITTED');
-        }
-
-        $this->update([
-            'status' => 'REJECTED',
-            'approved_by' => $userId,
-            'approved_at' => now(),
-        ]);
-    }
+public function reject()
+{
+    $this->update(['status' => 'REJECTED']);
+}
 }

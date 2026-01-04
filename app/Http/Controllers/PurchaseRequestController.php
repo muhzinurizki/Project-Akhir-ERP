@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers; // Sesuaikan folder jika perlu
 
+use App\Http\Controllers\Controller;
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
 use App\Models\Product;
@@ -12,131 +13,83 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseRequestController extends Controller
 {
-    /* =======================
-     |  LIST PR
-     ======================= */
     public function index()
     {
-        $prs = PurchaseRequest::with(['warehouse', 'requester'])
+        // Sesuaikan 'requester' dengan 'user' (relasi di model)
+        $prs = PurchaseRequest::with(['user'])
             ->latest()
             ->paginate(15);
 
         return view('purchase-requests.index', compact('prs'));
     }
 
-    /* =======================
-     |  CREATE PR FORM
-     ======================= */
     public function create()
     {
         return view('purchase-requests.create', [
-            'products' => Product::where('is_active', true)->get(),
-            'warehouses' => Warehouse::where('is_active', true)->get(),
+            'products' => Product::all(), // Pastikan kolom is_active ada di DB jika ingin filter
+            'warehouses' => Warehouse::all(),
         ]);
     }
 
-    /* =======================
-     |  STORE PR (HEADER + ITEMS)
-     ======================= */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'request_date' => 'required|date',
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'note' => 'nullable|string',
-
+            'note' => 'nullable|string|max:500',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:0.0001',
-            'items.*.note' => 'nullable|string',
+            'items.*.quantity' => 'required|numeric|min:0.01',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        try {
+            DB::beginTransaction();
 
+            // Menggunakan method static dari model yang kita buat tadi
             $pr = PurchaseRequest::create([
-                'pr_number' => $this->generatePrNumber(),
+                'pr_number' => PurchaseRequest::generatePrNumber(),
                 'request_date' => $validated['request_date'],
-                'warehouse_id' => $validated['warehouse_id'],
-                'status' => 'DRAFT',
-                'requested_by' => Auth::id(),
-                'note' => $validated['note'] ?? null,
+                'user_id' => Auth::id(),
+                'status' => 'PENDING',
+                'note' => $validated['note'],
             ]);
 
             foreach ($validated['items'] as $item) {
+                $product = Product::find($item['product_id']);
+
                 PurchaseRequestItem::create([
                     'purchase_request_id' => $pr->id,
                     'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'note' => $item['note'] ?? null,
+                    'qty' => $item['quantity'],
+                    // Menyimpan nama satuan saat ini agar histori aman jika satuan produk diubah
+                    'unit_name' => $product->unit->name ?? 'Unit',
                 ]);
             }
-        });
 
-        return redirect()
-            ->route('purchase-requests.index')
-            ->with('success', 'Purchase Request berhasil dibuat');
-    }
+            DB::commit();
+            return redirect()->route('purchase-requests.index')
+                             ->with('success', "PR {$pr->pr_number} berhasil dibuat.");
 
-    /* =======================
-     |  SHOW DETAIL PR
-     ======================= */
-    public function show(PurchaseRequest $purchaseRequest)
-    {
-        $purchaseRequest->load(['items.product', 'warehouse', 'requester', 'approver']);
-
-        return view('purchase-requests.show', compact('purchaseRequest'));
-    }
-
-    /* =======================
-     |  SUBMIT PR
-     ======================= */
-    public function submit(PurchaseRequest $purchaseRequest)
-    {
-        if (!$purchaseRequest->isEditable()) {
-            abort(403, 'PR tidak dapat disubmit');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        $purchaseRequest->submit();
-
-        return back()->with('success', 'PR berhasil disubmit');
     }
 
-    /* =======================
-     |  APPROVE PR
-     ======================= */
-    public function approve(PurchaseRequest $purchaseRequest)
+    public function show($id)
     {
-        if (!$purchaseRequest->canBeApproved()) {
-            abort(403, 'PR tidak dapat di-approve');
-        }
-
-        $purchaseRequest->approve(Auth::id());
-
-        return back()->with('success', 'PR berhasil di-approve');
+        $pr = PurchaseRequest::with(['items.product.unit', 'user'])->findOrFail($id);
+        return view('purchase-requests.show', compact('pr'));
     }
 
-    /* =======================
-     |  REJECT PR
-     ======================= */
-    public function reject(PurchaseRequest $purchaseRequest)
+    // Method tambahan untuk aksi Status (Simple implementation)
+    public function updateStatus(Request $request, PurchaseRequest $purchaseRequest)
     {
-        if (!$purchaseRequest->canBeApproved()) {
-            abort(403, 'PR tidak dapat di-reject');
-        }
+        $request->validate(['status' => 'required|in:APPROVED,REJECTED']);
 
-        $purchaseRequest->reject(Auth::id());
+        $purchaseRequest->update([
+            'status' => $request->status
+        ]);
 
-        return back()->with('success', 'PR berhasil di-reject');
-    }
-
-    /* =======================
-     |  HELPER: PR NUMBER
-     ======================= */
-    private function generatePrNumber(): string
-    {
-        $date = now()->format('Ymd');
-        $countToday = PurchaseRequest::whereDate('created_at', today())->count() + 1;
-
-        return 'PR-' . $date . '-' . str_pad($countToday, 4, '0', STR_PAD_LEFT);
+        return back()->with('success', 'Status PR berhasil diperbarui.');
     }
 }

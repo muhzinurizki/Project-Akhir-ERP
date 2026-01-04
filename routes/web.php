@@ -57,10 +57,17 @@ Route::middleware(['auth'])->group(function () {
 
   // --- PROCUREMENT (Alur Pembelian) ---
   // Purchase Request
-  Route::resource('purchase-requests', PurchaseRequestController::class)->only(['index', 'create', 'store', 'show']);
-  Route::post('purchase-requests/{purchaseRequest}/submit', [PurchaseRequestController::class, 'submit'])->name('purchase-requests.submit');
-  Route::post('purchase-requests/{purchaseRequest}/approve', [PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
-  Route::post('purchase-requests/{purchaseRequest}/reject', [PurchaseRequestController::class, 'reject'])->name('purchase-requests.reject');
+  Route::controller(PurchaseRequestController::class)->prefix('purchase-requests')->name('purchase-requests.')->group(function () {
+    // Custom Actions
+    Route::post('{purchaseRequest}/submit', 'submit')->name('submit');
+    Route::post('{purchaseRequest}/approve', 'approve')->name('approve'); // Tetap simpan jika controller butuh logika spesifik
+    Route::post('{purchaseRequest}/reject', 'reject')->name('reject');   // Tetap simpan jika controller butuh logika spesifik
+    Route::patch('{purchase_request}/update-status', 'updateStatus')->name('update-status');
+  });
+
+  // Resourceful Routes (Hanya yang diperlukan)
+  Route::resource('purchase-requests', PurchaseRequestController::class)
+    ->only(['index', 'create', 'store', 'show']);
 
   // Purchase Order
   Route::resource('purchase-orders', PurchaseOrderController::class)->only(['index', 'create', 'store', 'show']);

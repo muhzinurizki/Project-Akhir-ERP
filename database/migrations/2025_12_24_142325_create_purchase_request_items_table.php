@@ -5,34 +5,20 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void
-    {
-        Schema::create('purchase_request_items', function (Blueprint $table) {
-            $table->id();
+  public function up(): void
+  {
+    Schema::create('purchase_request_items', function (Blueprint $table) {
+      $table->id();
+      $table->foreignId('purchase_request_id')->constrained()->onDelete('cascade');
+      $table->foreignId('product_id')->constrained(); // Barang yang diminta
+      $table->decimal('qty', 15, 2);
+      $table->string('unit_name'); // Simpan nama satuan saat itu (untuk record)
+      $table->timestamps();
+    });
+  }
 
-            $table->foreignId('purchase_request_id')
-                ->constrained('purchase_requests')
-                ->cascadeOnDelete();
-
-            $table->foreignId('product_id')
-                ->constrained()
-                ->restrictOnDelete();
-
-            $table->decimal('quantity', 15, 4);
-
-            $table->text('note')->nullable();
-
-            $table->timestamps();
-
-            $table->unique(
-                ['purchase_request_id', 'product_id'],
-                'pr_item_unique'
-            );
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('purchase_request_items');
-    }
+  public function down(): void
+  {
+    Schema::dropIfExists('purchase_request_items');
+  }
 };
