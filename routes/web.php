@@ -14,7 +14,8 @@ use App\Http\Controllers\{
   GoodsReceiptController,
   AccountsPayableController,
   ApPaymentController, // Pastikan ini sudah dibuat
-  RoleController
+  RoleController,
+  PurchaseInvoiceController
 };
 
 Route::get('/', function () {
@@ -78,13 +79,11 @@ Route::middleware(['auth'])->group(function () {
   Route::resource('goods-receipts', GoodsReceiptController::class)->only(['index', 'create', 'store', 'show']);
 
   // --- FINANCE (Hutang & Pembayaran) ---
-  Route::resource('accounts-payables', AccountsPayableController::class)->only(['index', 'show']);
-  Route::resource('ap-payments', ApPaymentController::class);
+  Route::resource('purchase-invoices', PurchaseInvoiceController::class);
 
   // --- ADMINISTRATION (Khusus Admin) ---
   Route::middleware(['role:Admin'])->group(function () {
     Route::resource('users', UserController::class);
-    Route::resource('roles', RoleController::class);
   });
 
 });
