@@ -13,7 +13,7 @@ return new class extends Migration {
     Schema::table('users', function (Blueprint $table) {
       $table->string('employee_code')->nullable()->unique()->after('id');
       $table->string('phone')->nullable()->after('email');
-      $table->boolean('is_active')->default(true)->after('password');
+      $table->boolean('is_active')->default(true)->after('password'); 
     });
   }
 
