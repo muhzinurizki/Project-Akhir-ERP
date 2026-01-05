@@ -13,9 +13,9 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Pencarian dan Filter
         $query = Product::with(['category', 'unit']);
 
+        // Filter Pencarian
         if ($request->filled('search')) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
@@ -23,14 +23,17 @@ class ProductController extends Controller
             });
         }
 
+        // Filter Kategori
         if ($request->filled('category')) {
             $query->where('product_category_id', $request->category);
         }
 
+        // Filter Tipe
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 
+        // Urutkan berdasarkan stok terendah jika diminta (opsional untuk monitoring)
         $products = $query->latest()->paginate(10)->withQueryString();
 
         return view('products.index', [
@@ -56,11 +59,13 @@ class ProductController extends Controller
             'unit_id' => 'required|exists:units,id',
             'type' => 'required|in:raw_material,semi_finished,finished',
             'is_active' => 'nullable|boolean',
+            'stock' => 'nullable|numeric|min:0', // Tambahkan validasi stok awal
             'specification' => 'nullable|string',
         ]);
 
-        // Pastikan is_active bernilai true jika tidak dikirim (default checkbox)
         $validated['is_active'] = $request->has('is_active');
+        // Set stok ke 0 jika tidak diisi
+        $validated['stock'] = $request->stock ?? 0;
 
         try {
             DB::beginTransaction();
@@ -68,11 +73,11 @@ class ProductController extends Controller
             DB::commit();
 
             return redirect()->route('products.index')
-                ->with('success', 'Produk ' . $validated['name'] . ' berhasil disimpan.');
+                ->with('success', "Produk {$validated['name']} berhasil disimpan.");
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Product Store Error: " . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal menyimpan produk. Silakan cek log.');
+            return back()->withInput()->with('error', 'Gagal menyimpan produk: ' . $e->getMessage());
         }
     }
 
@@ -94,6 +99,7 @@ class ProductController extends Controller
             'unit_id' => 'required|exists:units,id',
             'type' => 'required|in:raw_material,semi_finished,finished',
             'is_active' => 'nullable|boolean',
+            'stock' => 'required|numeric|min:0', // Pastikan stok tetap tervalidasi saat update
             'specification' => 'nullable|string',
         ]);
 
@@ -105,7 +111,7 @@ class ProductController extends Controller
             DB::commit();
 
             return redirect()->route('products.index')
-                ->with('success', 'Produk ' . $product->name . ' berhasil diperbarui.');
+                ->with('success', "Produk {$product->name} berhasil diperbarui.");
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Product Update Error: " . $e->getMessage());
@@ -116,9 +122,6 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
-            // Cek jika produk sudah digunakan di transaksi lain (opsional)
-            // if ($product->orderItems()->exists()) { ... }
-
             $product->delete();
             return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {

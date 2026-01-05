@@ -64,39 +64,60 @@
                 </div>
             </section>
 
-            {{-- Section 2: Klasifikasi --}}
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div class="space-y-3">
-                    <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Kategori Material</label>
-                    <div class="relative group">
-                        <i data-lucide="layers" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
-                        <select name="product_category_id"
-                            class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase tracking-tighter">
-                            <option value="" disabled selected>Pilih Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('product_category_id') == $category->id ? 'selected' : '' }}>
-                                    {{ strtoupper($category->name) }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <i data-lucide="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"></i>
-                    </div>
+            {{-- Section 2: Klasifikasi & Initial Stock --}}
+            <section class="space-y-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="h-px flex-1 bg-slate-100"></div>
+                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Klasifikasi & Inventori</span>
+                    <div class="h-px flex-1 bg-slate-100"></div>
                 </div>
 
-                <div class="space-y-3">
-                    <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Satuan Dasar (UoM)</label>
-                    <div class="relative group">
-                        <i data-lucide="scale" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
-                        <select name="unit_id"
-                            class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase tracking-tighter">
-                            <option value="" disabled selected>Pilih Satuan</option>
-                            @foreach($units as $unit)
-                                <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>
-                                    {{ $unit->code }} ({{ strtoupper($unit->name) }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <i data-lucide="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"></i>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    {{-- Category --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Kategori</label>
+                        <div class="relative group">
+                            <i data-lucide="layers" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
+                            <select name="product_category_id"
+                                class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase tracking-tighter">
+                                <option value="" disabled selected>Pilih Kategori</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('product_category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ strtoupper($category->name) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    {{-- Unit --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Satuan (UOM)</label>
+                        <div class="relative group">
+                            <i data-lucide="scale" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
+                            <select name="unit_id"
+                                class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase tracking-tighter">
+                                <option value="" disabled selected>Satuan</option>
+                                @foreach($units as $unit)
+                                    <option value="{{ $unit->id }}" {{ old('unit_id') == $unit->id ? 'selected' : '' }}>
+                                        {{ $unit->code }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    {{-- INITIAL STOCK FIELD --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Stok Awal (Saldo)</label>
+                        <div class="relative group">
+                            <i data-lucide="archive" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors"></i>
+                            <input type="number" name="stock" value="{{ old('stock', 0) }}" min="0" step="0.01"
+                                class="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight">
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-bold ml-1 uppercase italic tracking-tighter">*Biarkan 0 jika belum ada stok.</p>
                     </div>
                 </div>
             </section>
@@ -119,7 +140,7 @@
                             
                             <div class="p-6 border-2 border-slate-50 bg-slate-50/50 rounded-[2rem] transition-all duration-300 peer-checked:border-slate-900 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-slate-200/50 group">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-4 transition-all duration-300 peer-checked:group-[]:bg-slate-900 peer-checked:group-[]:text-white shadow-sm">
+                                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-4 transition-all duration-300 peer-checked:group-[]:bg-slate-900 peer-checked:group-[]:text-white shadow-sm border border-slate-50">
                                         <i data-lucide="{{ $data['icon'] }}" class="w-6 h-6 text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
                                     </div>
                                     <p class="text-[11px] font-black text-slate-900 uppercase tracking-widest">{{ $data['label'] }}</p>
@@ -170,10 +191,11 @@
     </div>
 </div>
 
-{{-- Script untuk update ikon di radio button yang tidak terefresh otomatis --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     });
 </script>
 @endsection

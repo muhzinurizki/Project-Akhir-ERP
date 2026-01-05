@@ -30,14 +30,19 @@
         </div>
     </div>
 
-    {{-- Stats Grid --}}
+    {{-- Stats Grid (Dinamis) --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @php
+            $totalSku = $products->total();
+            $activeCount = $products->where('is_active', true)->count();
+            // Menghitung stok rendah (< 10)
+            $lowStockCount = $products->filter(fn($p) => $p->stock <= 10)->count();
+            
             $kpis = [
-                ['label' => 'Total SKU', 'val' => $products->total(), 'color' => 'indigo', 'icon' => 'box'],
-                ['label' => 'Active Item', 'val' => $activeCount ?? 0, 'color' => 'emerald', 'icon' => 'check-circle'],
+                ['label' => 'Total SKU', 'val' => $totalSku, 'color' => 'indigo', 'icon' => 'box'],
+                ['label' => 'Active Item', 'val' => $activeCount, 'color' => 'emerald', 'icon' => 'check-circle'],
                 ['label' => 'Categories', 'val' => $categories->count(), 'color' => 'amber', 'icon' => 'layers'],
-                ['label' => 'Low Stock', 'val' => '12', 'color' => 'rose', 'icon' => 'alert-circle'],
+                ['label' => 'Low Stock', 'val' => $lowStockCount, 'color' => 'rose', 'icon' => 'alert-circle'],
             ];
         @endphp
         @foreach($kpis as $kpi)
@@ -95,6 +100,8 @@
                         <th class="px-10 py-6 border-b border-slate-50 text-center">No</th>
                         <th class="px-4 py-6 border-b border-slate-50">Identitas Produk</th>
                         <th class="px-6 py-6 border-b border-slate-50">Kategori</th>
+                        {{-- Kolom Stok Baru --}}
+                        <th class="px-6 py-6 border-b border-slate-50 text-center text-indigo-600">Inventory Level</th>
                         <th class="px-6 py-6 border-b border-slate-50 text-center">UOM</th>
                         <th class="px-6 py-6 border-b border-slate-50 text-center">Status</th>
                         <th class="px-10 py-6 border-b border-slate-50 text-right">Manajemen</th>
@@ -124,6 +131,21 @@
                                 <span class="px-3 py-1 bg-indigo-50/50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
                                     {{ $product->category?->name ?? 'N/A' }}
                                 </span>
+                            </td>
+                            {{-- LOGIKA VISUALISASI STOK --}}
+                            <td class="px-6 py-6 text-center">
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="text-sm font-black tracking-tighter {{ $product->stock <= 10 ? 'text-rose-600' : 'text-slate-900' }}">
+                                        {{ number_format($product->stock, 0, ',', '.') }}
+                                    </span>
+                                    @if($product->stock <= 0)
+                                        <span class="text-[8px] font-black px-2 py-0.5 bg-rose-100 text-rose-600 rounded uppercase tracking-widest">Empty</span>
+                                    @elseif($product->stock <= 10)
+                                        <span class="text-[8px] font-black px-2 py-0.5 bg-amber-100 text-amber-600 rounded uppercase tracking-widest">Low Stock</span>
+                                    @else
+                                        <span class="text-[8px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded uppercase tracking-widest">Good</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-6 text-center">
                                 <span class="text-xs font-black text-slate-500 uppercase">{{ $product->unit?->code ?? 'PCS' }}</span>
@@ -165,7 +187,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-10 py-32 text-center">
+                            <td colspan="7" class="px-10 py-32 text-center">
                                 <div class="flex flex-col items-center">
                                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-4 border-2 border-dashed border-slate-100">
                                         <i data-lucide="package-search" class="w-10 h-10"></i>
@@ -184,11 +206,4 @@
         </div>
     </div>
 </div>
-
-{{-- Custom Pagination Styling --}}
-<style>
-    .pagination { @apply flex items-center gap-2; }
-    .page-item .page-link { @apply rounded-xl border-none bg-white text-slate-600 font-black text-xs px-4 py-2 shadow-sm transition-all; }
-    .page-item.active .page-link { @apply bg-slate-900 text-white shadow-lg; }
-</style>
 @endsection

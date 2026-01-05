@@ -84,37 +84,55 @@
                 </div>
             </section>
 
-            {{-- Section 2: Klasifikasi --}}
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div class="space-y-3">
-                    <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Kategori</label>
-                    <div class="relative group">
-                        <i data-lucide="layers" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
-                        <select name="product_category_id"
-                            class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase">
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" @selected(old('product_category_id', $product->product_category_id) == $category->id)>
-                                    {{ strtoupper($category->name) }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <i data-lucide="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"></i>
-                    </div>
+            {{-- Section 2: Klasifikasi & Stok --}}
+            <section class="space-y-8">
+                <div class="flex items-center gap-4">
+                    <div class="h-px flex-1 bg-slate-100"></div>
+                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Parameter Teknis</span>
+                    <div class="h-px flex-1 bg-slate-100"></div>
                 </div>
 
-                <div class="space-y-3">
-                    <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Satuan (UOM)</label>
-                    <div class="relative group">
-                        <i data-lucide="scale" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
-                        <select name="unit_id"
-                            class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase">
-                            @foreach($units as $unit)
-                                <option value="{{ $unit->id }}" @selected(old('unit_id', $product->unit_id) == $unit->id)>
-                                    {{ $unit->code }} — {{ strtoupper($unit->name) }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <i data-lucide="chevron-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"></i>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    {{-- Kategori --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Kategori</label>
+                        <div class="relative group">
+                            <i data-lucide="layers" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 z-10"></i>
+                            <select name="product_category_id"
+                                class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase">
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" @selected(old('product_category_id', $product->product_category_id) == $category->id)>
+                                        {{ strtoupper($category->name) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- UOM --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Satuan</label>
+                        <div class="relative group">
+                            <i data-lucide="scale" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 z-10"></i>
+                            <select name="unit_id"
+                                class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase">
+                                @foreach($units as $unit)
+                                    <option value="{{ $unit->id }}" @selected(old('unit_id', $product->unit_id) == $unit->id)>
+                                        {{ $unit->code }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- STOCK ADJUSTMENT (NEW) --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1 italic">Manual Stock Adj.</label>
+                        <div class="relative group">
+                            <i data-lucide="database" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500 z-10"></i>
+                            <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" step="0.01"
+                                class="w-full pl-14 pr-6 py-4 bg-indigo-50/30 border border-indigo-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner text-indigo-900">
+                        </div>
                     </div>
                 </div>
             </section>
@@ -155,7 +173,6 @@
 
             {{-- Section 4: Status Toggle --}}
             <div class="p-10 bg-slate-900 rounded-[2.5rem] text-white flex items-center justify-between shadow-2xl shadow-slate-300 relative overflow-hidden group/toggle">
-                {{-- Decorative element --}}
                 <div class="absolute top-0 right-0 w-32 h-full bg-white/5 skew-x-[20deg] translate-x-10 group-hover/toggle:translate-x-0 transition-transform duration-700"></div>
                 
                 <div class="flex items-center gap-6 relative z-10">
@@ -190,4 +207,12 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
 @endsection
