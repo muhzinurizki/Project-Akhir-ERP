@@ -4,28 +4,16 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('goods_receipt_items', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('goods_receipt_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
-
-            // Referensi langsung ke PO item (audit & partial receipt)
-            $table->foreignId('purchase_order_item_id')
-                  ->constrained()
-                  ->restrictOnDelete();
-
-            $table->foreignId('product_id')
-                  ->constrained()
-                  ->restrictOnDelete();
-
-            // Qty diterima di GR ini
-            $table->decimal('quantity', 15, 4);
-
+            $table->foreignId('goods_receipt_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained();
+            $table->decimal('qty_ordered', 15, 2);  // Jumlah di PO
+            $table->decimal('qty_received', 15, 2); // Jumlah yang nyata diterima
             $table->timestamps();
         });
     }

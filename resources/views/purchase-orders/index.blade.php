@@ -93,16 +93,30 @@
                             </span>
                         </td>
                         <td class="px-10 py-7 text-right">
-                            <div class="flex justify-end gap-2">
-                                <a href="{{ route('purchase-orders.show', $po->id) }}" 
-                                   class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 hover:shadow-xl hover:shadow-indigo-100 transition-all">
-                                    <i data-lucide="external-link" class="w-5 h-5"></i>
-                                </a>
-                                <button class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-600 transition-all">
-                                    <i data-lucide="printer" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                        </td>
+    <div class="flex justify-end gap-2">
+        {{-- TOMBOL TERIMA BARANG (Hanya muncul jika status SENT/APPROVED) --}}
+        @if($po->status == 'SENT' || $po->status == 'APPROVED')
+            <a href="{{ route('goods-receipts.create', ['po_id' => $po->id]) }}" 
+               class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-100 transition-all active:scale-95">
+                <i data-lucide="package-plus" class="w-4 h-4"></i>
+                Terima Barang
+            </a>
+        @endif
+
+        {{-- Link Detail --}}
+        <a href="{{ route('purchase-orders.show', $po->id) }}" 
+           class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 hover:shadow-xl hover:shadow-indigo-100 transition-all"
+           title="Lihat Detail">
+            <i data-lucide="external-link" class="w-5 h-5"></i>
+        </a>
+
+        {{-- Tombol Print --}}
+        <button class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-600 transition-all"
+                title="Cetak PO">
+            <i data-lucide="printer" class="w-5 h-5"></i>
+        </button>
+    </div>
+</td>
                     </tr>
                     @empty
                     <tr>
