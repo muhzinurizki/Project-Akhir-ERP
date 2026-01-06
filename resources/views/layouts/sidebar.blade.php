@@ -24,31 +24,37 @@
     {{-- NAVIGATION --}}
     <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-1 custom-scrollbar">
         @php
-            $menus = [
-                ['route' => 'dashboard', 'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
+    $menus = [
+        ['route' => 'dashboard', 'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
 
-                ['header' => 'Master Data'],
-                ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
-                ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
-                ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
+        ['header' => 'Master Data'],
+        ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
+        ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
+        ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
+        ['route' => 'customers.index', 'icon' => 'users-round', 'label' => 'Customers'], // Ditambahkan di sini
 
-                ['header' => 'Inventory Management'],
-                ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Balances'],
-                ['route' => 'inventory.movements', 'icon' => 'history', 'label' => 'Stock Movements'],
-                ['route' => 'goods-receipts.index', 'icon' => 'package-check', 'label' => 'Goods Receipt'],
+        ['header' => 'Inventory Management'],
+        ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Balances'],
+        ['route' => 'inventory.movements', 'icon' => 'history', 'label' => 'Stock Movements'],
+        ['route' => 'goods-receipts.index', 'icon' => 'package-check', 'label' => 'Goods Receipt'],
 
-                ['header' => 'Procurement'],
-                ['route' => 'purchase-requests.index', 'icon' => 'shopping-cart', 'label' => 'Purchase Request'],
-                ['route' => 'purchase-orders.index', 'icon' => 'shopping-bag', 'label' => 'Purchase Order'],
+        ['header' => 'Procurement'],
+        ['route' => 'purchase-requests.index', 'icon' => 'shopping-cart', 'label' => 'Purchase Request'],
+        ['route' => 'purchase-orders.index', 'icon' => 'shopping-bag', 'label' => 'Purchase Order'],
 
-                ['header' => 'Finance & Admin'],
-                ['route' => 'purchase-invoices.index', 'icon' => 'wallet', 'label' => 'Account Payable'],
+        ['header' => 'Sales & Distribution'], // Header baru untuk alur kerja Customer
+        ['route' => 'sales-orders.index', 'icon' => 'file-spreadsheet', 'label' => 'Sales Order'],
+        ['route' => 'delivery-orders.index', 'icon' => 'truck-delivery', 'label' => 'Delivery Order'],
 
-                ['header' => 'User Management'],
-                ['route' => 'users.index', 'icon' => 'users', 'label' => 'User Management'],
-                ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Role Management'],
-            ];
-        @endphp
+        ['header' => 'Finance & Admin'],
+        ['route' => 'purchase-invoices.index', 'icon' => 'wallet', 'label' => 'Account Payable'],
+        ['route' => 'sales-invoices.index', 'icon' => 'badge-dollar-sign', 'label' => 'Account Receivable'], // Tambahan untuk Sales
+
+        ['header' => 'User Management'],
+        ['route' => 'users.index', 'icon' => 'users', 'label' => 'User Management'],
+        ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Role Management'],
+    ];
+@endphp
 
         @foreach ($menus as $menu)
             @if (isset($menu['header']))
