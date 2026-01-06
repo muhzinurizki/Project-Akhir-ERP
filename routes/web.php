@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     PurchaseOrderController,
     GoodsReceiptController,
     PurchaseInvoiceController, // Ini pengganti AccountsPayableController
+    SalesInvoiceController,
     RoleController
 };
 
@@ -66,7 +67,8 @@ Route::middleware(['auth'])->group(function () {
     // --- FINANCE (Hutang & Piutang) ---
     // Account Payable (Hutang)
     Route::resource('purchase-invoices', PurchaseInvoiceController::class);
-    
+    Route::resource('sales-invoices', SalesInvoiceController::class);
+
     // Account Receivable (Piutang) - Siapkan route ini untuk modul berikutnya
     // Route::resource('sales-invoices', SalesInvoiceController::class);
 
