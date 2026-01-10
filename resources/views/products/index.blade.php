@@ -30,13 +30,13 @@
         </div>
     </div>
 
-    {{-- Stats Grid (Dinamis) --}}
+    {{-- Stats Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @php
             $totalSku = $products->total();
             $activeCount = $products->where('is_active', true)->count();
-            // Menghitung stok rendah (< 10)
-            $lowStockCount = $products->filter(fn($p) => $p->stock <= 10)->count();
+            // Menghitung stok rendah (asumsi kolom stock ada di DB)
+            $lowStockCount = $products->filter(fn($p) => ($p->stock ?? 0) <= 10)->count();
             
             $kpis = [
                 ['label' => 'Total SKU', 'val' => $totalSku, 'color' => 'indigo', 'icon' => 'box'],
@@ -99,10 +99,9 @@
                     <tr>
                         <th class="px-10 py-6 border-b border-slate-50 text-center">No</th>
                         <th class="px-4 py-6 border-b border-slate-50">Identitas Produk</th>
-                        <th class="px-6 py-6 border-b border-slate-50">Kategori</th>
-                        {{-- Kolom Stok Baru --}}
-                        <th class="px-6 py-6 border-b border-slate-50 text-center text-indigo-600">Inventory Level</th>
-                        <th class="px-6 py-6 border-b border-slate-50 text-center">UOM</th>
+                        <th class="px-6 py-6 border-b border-slate-50">Harga Beli</th>
+                        <th class="px-6 py-6 border-b border-slate-50 text-indigo-600">Harga Jual</th>
+                        <th class="px-6 py-6 border-b border-slate-50 text-center text-slate-600">Inventory</th>
                         <th class="px-6 py-6 border-b border-slate-50 text-center">Status</th>
                         <th class="px-10 py-6 border-b border-slate-50 text-right">Manajemen</th>
                     </tr>
@@ -121,39 +120,36 @@
                                     <div class="flex flex-col">
                                         <span class="font-black text-slate-900 group-hover/row:text-indigo-600 transition-colors text-sm uppercase tracking-tight italic">{{ $product->name }}</span>
                                         <span class="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-1.5">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-200"></span>
+                                            <span class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">{{ $product->category?->name ?? 'N/A' }}</span>
                                             SKU: {{ $product->sku }}
                                         </span>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-6">
-                                <span class="px-3 py-1 bg-indigo-50/50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100/50">
-                                    {{ $product->category?->name ?? 'N/A' }}
-                                </span>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Purchase</span>
+                                    <span class="font-black text-slate-700 tracking-tighter text-xs">Rp {{ number_format($product->purchase_price, 0, ',', '.') }}</span>
+                                </div>
                             </td>
-                            {{-- LOGIKA VISUALISASI STOK --}}
-                            <td class="px-6 py-6 text-center">
-                                <div class="flex flex-col items-center gap-1">
-                                    <span class="text-sm font-black tracking-tighter {{ $product->stock <= 10 ? 'text-rose-600' : 'text-slate-900' }}">
-                                        {{ number_format($product->stock, 0, ',', '.') }}
-                                    </span>
-                                    @if($product->stock <= 0)
-                                        <span class="text-[8px] font-black px-2 py-0.5 bg-rose-100 text-rose-600 rounded uppercase tracking-widest">Empty</span>
-                                    @elseif($product->stock <= 10)
-                                        <span class="text-[8px] font-black px-2 py-0.5 bg-amber-100 text-amber-600 rounded uppercase tracking-widest">Low Stock</span>
-                                    @else
-                                        <span class="text-[8px] font-black px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded uppercase tracking-widest">Good</span>
-                                    @endif
+                            <td class="px-6 py-6">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">Selling</span>
+                                    <span class="font-black text-indigo-600 tracking-tighter text-xs">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-6 text-center">
-                                <span class="text-xs font-black text-slate-500 uppercase">{{ $product->unit?->code ?? 'PCS' }}</span>
+                                <div class="flex flex-col items-center">
+                                    <span class="text-sm font-black tracking-tighter {{ ($product->stock ?? 0) <= 10 ? 'text-rose-600' : 'text-slate-900' }}">
+                                        {{ number_format($product->stock ?? 0, 0, ',', '.') }}
+                                    </span>
+                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ $product->unit?->code ?? 'PCS' }}</span>
+                                </div>
                             </td>
                             <td class="px-6 py-6 text-center">
                                 <div class="flex justify-center">
                                     @if($product->is_active)
-                                        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black border border-emerald-100 shadow-sm">
+                                        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black border border-emerald-100">
                                             <span class="relative flex h-2 w-2">
                                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -162,7 +158,6 @@
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-black border border-slate-200">
-                                            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
                                             IDLE
                                         </div>
                                     @endif
@@ -171,14 +166,14 @@
                             <td class="px-10 py-6 text-right">
                                 <div class="flex justify-end gap-2">
                                     <a href="{{ route('products.edit', $product->id) }}"
-                                        class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-100 rounded-xl transition-all hover:rotate-6 shadow-sm" title="Edit Data">
+                                        class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-100 rounded-xl transition-all shadow-sm">
                                         <i data-lucide="pencil-line" class="w-4 h-4"></i>
                                     </a>
                                     <form action="{{ route('products.destroy', $product->id) }}" method="POST"
-                                        onsubmit="return confirm('Hapus data produk ini secara permanen?')">
+                                        onsubmit="return confirm('Hapus SKU {{ $product->sku }} permanen?')">
                                         @csrf @method('DELETE')
                                         <button type="submit"
-                                            class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-100 rounded-xl transition-all hover:-rotate-6 shadow-sm" title="Delete SKU">
+                                            class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-100 rounded-xl transition-all shadow-sm">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </form>
@@ -201,9 +196,11 @@
             </table>
         </div>
 
+        @if($products->hasPages())
         <div class="px-10 py-8 bg-slate-50/50 border-t border-slate-50">
             {{ $products->links() }}
         </div>
+        @endif
     </div>
 </div>
 @endsection

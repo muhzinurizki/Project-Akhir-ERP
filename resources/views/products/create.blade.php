@@ -45,7 +45,7 @@
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">SKU / Kode Produksi</label>
                         <div class="relative group">
                             <i data-lucide="fingerprint" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors"></i>
-                            <input type="text" name="sku" value="{{ old('sku') }}" placeholder="FAB-COT-30S-BLK"
+                            <input type="text" name="sku" value="{{ old('sku') }}" placeholder="FAB-COT-30S-BLK" required
                                 class="w-full pl-14 pr-6 py-4 bg-slate-50 border @error('sku') border-rose-500 @else border-slate-100 @enderror rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight uppercase">
                         </div>
                         @error('sku') <p class="text-[10px] text-rose-500 mt-2 font-bold ml-1 uppercase italic tracking-tighter">{{ $message }}</p> @enderror
@@ -56,7 +56,7 @@
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Nama Deskriptif Produk</label>
                         <div class="relative group">
                             <i data-lucide="edit-3" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors"></i>
-                            <input type="text" name="name" value="{{ old('name') }}" placeholder="COTTON COMBED 30S - JET BLACK"
+                            <input type="text" name="name" value="{{ old('name') }}" placeholder="COTTON COMBED 30S - JET BLACK" required
                                 class="w-full pl-14 pr-6 py-4 bg-slate-50 border @error('name') border-rose-500 @else border-slate-100 @enderror rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight">
                         </div>
                         @error('name') <p class="text-[10px] text-rose-500 mt-2 font-bold ml-1 uppercase italic tracking-tighter">{{ $message }}</p> @enderror
@@ -64,12 +64,36 @@
                 </div>
             </section>
 
-            {{-- Section 2: Klasifikasi & Initial Stock --}}
+            {{-- Section 2: Pricing & Inventory --}}
             <section class="space-y-8">
                 <div class="flex items-center gap-4 mb-4">
                     <div class="h-px flex-1 bg-slate-100"></div>
-                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Klasifikasi & Inventori</span>
+                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Finansial & Inventori</span>
                     <div class="h-px flex-1 bg-slate-100"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    {{-- Purchase Price --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Harga Beli (Satuan)</label>
+                        <div class="relative group">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-[11px] font-black text-slate-300 group-focus-within:text-indigo-600 transition-colors">RP</span>
+                            <input type="number" name="purchase_price" value="{{ old('purchase_price') }}" placeholder="0" required
+                                class="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight">
+                        </div>
+                        @error('purchase_price') <p class="text-[10px] text-rose-500 mt-2 font-bold ml-1 uppercase italic tracking-tighter">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Selling Price --}}
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Harga Jual (Pricelist)</label>
+                        <div class="relative group">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-[11px] font-black text-slate-300 group-focus-within:text-emerald-600 transition-colors">RP</span>
+                            <input type="number" name="selling_price" value="{{ old('selling_price') }}" placeholder="0" required
+                                class="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-emerald-600/5 focus:border-emerald-600 outline-none transition-all shadow-inner tracking-tight">
+                        </div>
+                        @error('selling_price') <p class="text-[10px] text-rose-500 mt-2 font-bold ml-1 uppercase italic tracking-tighter">{{ $message }}</p> @enderror
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -78,7 +102,7 @@
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Kategori</label>
                         <div class="relative group">
                             <i data-lucide="layers" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
-                            <select name="product_category_id"
+                            <select name="product_category_id" required
                                 class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase tracking-tighter">
                                 <option value="" disabled selected>Pilih Kategori</option>
                                 @foreach($categories as $category)
@@ -96,7 +120,7 @@
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Satuan (UOM)</label>
                         <div class="relative group">
                             <i data-lucide="scale" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-focus-within:text-indigo-600 z-10"></i>
-                            <select name="unit_id"
+                            <select name="unit_id" required
                                 class="w-full pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all appearance-none cursor-pointer shadow-inner uppercase tracking-tighter">
                                 <option value="" disabled selected>Satuan</option>
                                 @foreach($units as $unit)
@@ -109,7 +133,7 @@
                         </div>
                     </div>
 
-                    {{-- INITIAL STOCK FIELD --}}
+                    {{-- Initial Stock --}}
                     <div class="space-y-3">
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Stok Awal (Saldo)</label>
                         <div class="relative group">
@@ -117,7 +141,7 @@
                             <input type="number" name="stock" value="{{ old('stock', 0) }}" min="0" step="0.01"
                                 class="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight">
                         </div>
-                        <p class="text-[9px] text-slate-400 font-bold ml-1 uppercase italic tracking-tighter">*Biarkan 0 jika belum ada stok.</p>
+                        <p class="text-[9px] text-slate-400 font-bold ml-1 uppercase italic tracking-tighter">*Hanya untuk saldo awal pembukaan.</p>
                     </div>
                 </div>
             </section>
@@ -130,26 +154,20 @@
                         $types = [
                             'raw_material' => ['label' => 'RAW MAT', 'icon' => 'box', 'desc' => 'Bahan Baku'],
                             'semi_finished' => ['label' => 'WIP', 'icon' => 'component', 'desc' => 'Setengah Jadi'],
-                            'finished' => ['label' => 'FINISHED', 'icon' => 'check-circle', 'desc' => 'Produk Jadi']
+                            'finished_goods' => ['label' => 'FINISHED', 'icon' => 'check-circle', 'desc' => 'Produk Jadi']
                         ];
                     @endphp
 
                     @foreach($types as $value => $data)
-                        <label class="relative cursor-pointer">
+                        <label class="relative cursor-pointer group">
                             <input type="radio" name="type" value="{{ $value }}" class="sr-only peer" {{ (old('type') ?? 'raw_material') == $value ? 'checked' : '' }}>
-                            
-                            <div class="p-6 border-2 border-slate-50 bg-slate-50/50 rounded-[2rem] transition-all duration-300 peer-checked:border-slate-900 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-slate-200/50 group">
+                            <div class="p-6 border-2 border-slate-50 bg-slate-50/50 rounded-[2rem] transition-all duration-300 peer-checked:border-slate-900 peer-checked:bg-white peer-checked:shadow-xl peer-checked:shadow-slate-200/50">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-4 transition-all duration-300 peer-checked:group-[]:bg-slate-900 peer-checked:group-[]:text-white shadow-sm border border-slate-50">
+                                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-sm border border-slate-50 transition-all peer-checked:group-[]:bg-slate-900 peer-checked:group-[]:text-white">
                                         <i data-lucide="{{ $data['icon'] }}" class="w-6 h-6 text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
                                     </div>
                                     <p class="text-[11px] font-black text-slate-900 uppercase tracking-widest">{{ $data['label'] }}</p>
                                     <p class="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tight">{{ $data['desc'] }}</p>
-                                </div>
-
-                                {{-- Active Indicator --}}
-                                <div class="absolute top-4 right-4 w-4 h-4 rounded-full border-2 border-slate-200 peer-checked:group-[]:border-slate-900 peer-checked:group-[]:bg-slate-900 flex items-center justify-center transition-all">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:group-[]:opacity-100"></div>
                                 </div>
                             </div>
                         </label>
@@ -157,7 +175,14 @@
                 </div>
             </section>
 
-            {{-- Section 4: Status Toggle --}}
+            {{-- Section 4: Spesifikasi --}}
+            <section class="space-y-3">
+                <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Spesifikasi Teknis / Catatan</label>
+                <textarea name="specification" rows="4" placeholder="Contoh: GSM 160-170, Lebar 42 inch, Setting Tubular..."
+                    class="w-full p-6 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-medium focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight">{{ old('specification') }}</textarea>
+            </section>
+
+            {{-- Section 5: Status Toggle --}}
             <div class="p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 flex items-center justify-between group transition-all hover:bg-white hover:shadow-xl hover:shadow-slate-200/30">
                 <div class="flex items-center gap-6">
                     <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-slate-100 shadow-sm group-hover:rotate-6 transition-all">

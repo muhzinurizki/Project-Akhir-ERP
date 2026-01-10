@@ -60,23 +60,21 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    {{-- SKU Field --}}
                     <div class="space-y-3">
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">SKU / Kode Unik</label>
                         <div class="relative group">
                             <i data-lucide="hash" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors"></i>
-                            <input type="text" name="sku" value="{{ old('sku', $product->sku) }}"
+                            <input type="text" name="sku" value="{{ old('sku', $product->sku) }}" required
                                 class="w-full pl-14 pr-6 py-4 bg-slate-50 border @error('sku') border-rose-500 @else border-slate-100 @enderror rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner uppercase tracking-tight">
                         </div>
                         @error('sku') <p class="text-[10px] text-rose-500 mt-2 font-bold ml-1 uppercase italic tracking-tighter">{{ $message }}</p> @enderror
                     </div>
 
-                    {{-- Name Field --}}
                     <div class="space-y-3">
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Nama Produk</label>
                         <div class="relative group">
                             <i data-lucide="package" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors"></i>
-                            <input type="text" name="name" value="{{ old('name', $product->name) }}"
+                            <input type="text" name="name" value="{{ old('name', $product->name) }}" required
                                 class="w-full pl-14 pr-6 py-4 bg-slate-50 border @error('name') border-rose-500 @else border-slate-100 @enderror rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner">
                         </div>
                         @error('name') <p class="text-[10px] text-rose-500 mt-2 font-bold ml-1 uppercase italic tracking-tighter">{{ $message }}</p> @enderror
@@ -84,16 +82,35 @@
                 </div>
             </section>
 
-            {{-- Section 2: Klasifikasi & Stok --}}
+            {{-- Section 2: Finansial & Parameter --}}
             <section class="space-y-8">
                 <div class="flex items-center gap-4">
                     <div class="h-px flex-1 bg-slate-100"></div>
-                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Parameter Teknis</span>
+                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Finansial & Parameter</span>
                     <div class="h-px flex-1 bg-slate-100"></div>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Harga Beli</label>
+                        <div class="relative group">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">RP</span>
+                            <input type="number" name="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}"
+                                class="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Harga Jual</label>
+                        <div class="relative group">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">RP</span>
+                            <input type="number" name="selling_price" value="{{ old('selling_price', $product->selling_price) }}"
+                                class="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-sm font-black focus:bg-white focus:ring-8 focus:ring-emerald-600/5 focus:border-emerald-600 outline-none transition-all shadow-inner">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                    {{-- Kategori --}}
                     <div class="space-y-3">
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Kategori</label>
                         <div class="relative group">
@@ -109,7 +126,6 @@
                         </div>
                     </div>
 
-                    {{-- UOM --}}
                     <div class="space-y-3">
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Satuan</label>
                         <div class="relative group">
@@ -125,7 +141,6 @@
                         </div>
                     </div>
 
-                    {{-- STOCK ADJUSTMENT (NEW) --}}
                     <div class="space-y-3">
                         <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1 italic">Manual Stock Adj.</label>
                         <div class="relative group">
@@ -145,14 +160,13 @@
                         $types = [
                             'raw_material' => ['label' => 'RAW MAT', 'icon' => 'box'],
                             'semi_finished' => ['label' => 'WIP', 'icon' => 'component'],
-                            'finished' => ['label' => 'FINISHED', 'icon' => 'check-circle']
+                            'finished_goods' => ['label' => 'FINISHED', 'icon' => 'check-circle']
                         ];
                     @endphp
 
                     @foreach($types as $value => $data)
                         <label class="relative cursor-pointer group/type">
                             <input type="radio" name="type" value="{{ $value }}" class="sr-only peer" @checked(old('type', $product->type) == $value)>
-                            
                             <div class="p-8 border-2 border-slate-50 bg-slate-50/50 rounded-[2rem] transition-all duration-300 peer-checked:border-slate-900 peer-checked:bg-white peer-checked:shadow-2xl peer-checked:shadow-slate-200/60">
                                 <div class="flex flex-col items-center text-center">
                                     <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-4 transition-all duration-300 group-hover/type:rotate-12 shadow-sm border border-slate-50">
@@ -160,8 +174,6 @@
                                     </div>
                                     <p class="text-[11px] font-black text-slate-900 uppercase tracking-widest">{{ $data['label'] }}</p>
                                 </div>
-
-                                {{-- Active Indicator --}}
                                 <div class="absolute top-5 right-5 w-5 h-5 rounded-full border-2 border-slate-100 peer-checked:group-[]:border-slate-900 peer-checked:group-[]:bg-slate-900 flex items-center justify-center transition-all shadow-inner">
                                     <i data-lucide="check" class="w-2.5 h-2.5 text-white opacity-0 peer-checked:group-[]:opacity-100 transition-opacity"></i>
                                 </div>
@@ -171,7 +183,14 @@
                 </div>
             </section>
 
-            {{-- Section 4: Status Toggle --}}
+            {{-- Section 4: Spesifikasi --}}
+            <section class="space-y-3">
+                <label class="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Spesifikasi Teknis / Catatan</label>
+                <textarea name="specification" rows="4" 
+                    class="w-full p-6 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-medium focus:bg-white focus:ring-8 focus:ring-indigo-600/5 focus:border-indigo-600 outline-none transition-all shadow-inner tracking-tight">{{ old('specification', $product->specification) }}</textarea>
+            </section>
+
+            {{-- Section 5: Status Toggle --}}
             <div class="p-10 bg-slate-900 rounded-[2.5rem] text-white flex items-center justify-between shadow-2xl shadow-slate-300 relative overflow-hidden group/toggle">
                 <div class="absolute top-0 right-0 w-32 h-full bg-white/5 skew-x-[20deg] translate-x-10 group-hover/toggle:translate-x-0 transition-transform duration-700"></div>
                 
