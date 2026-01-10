@@ -29,6 +29,10 @@
 
                 ['header' => 'Master Data'],
                 ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
+                // Penambahan Menu Baru
+                ['route' => 'product-categories.index', 'icon' => 'layers', 'label' => 'Product Categories'],
+                ['route' => 'units.index', 'icon' => 'scale', 'label' => 'Units'],
+                // ---
                 ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
                 ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
                 ['route' => 'customers.index', 'icon' => 'users-round', 'label' => 'Customers'],

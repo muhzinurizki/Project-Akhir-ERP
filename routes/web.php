@@ -5,6 +5,8 @@ use App\Http\Controllers\{
   UserController,
   ProfileController,
   ProductController,
+  ProductCategoryController,
+  UnitController,
   SupplierController,
   CustomerController,
   WarehouseController,
@@ -37,8 +39,10 @@ Route::middleware(['auth'])->group(function () {
   // --- MASTER DATA ---
   Route::resource('products', ProductController::class);
   Route::resource('suppliers', SupplierController::class);
-  Route::resource('customers', CustomerController::class); // TAMBAHKAN INI
+  Route::resource('customers', CustomerController::class);
   Route::resource('warehouses', WarehouseController::class);
+  Route::resource('product-categories', ProductCategoryController::class);
+  Route::resource('units', UnitController::class);
 
   // --- INVENTORY & STOCK ---
   Route::prefix('inventory')->name('inventory.')->group(function () {
