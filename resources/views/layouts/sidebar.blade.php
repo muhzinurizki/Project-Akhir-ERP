@@ -9,14 +9,14 @@
             <div class="relative group cursor-pointer">
                 <div
                     class="w-12 h-12 rounded-[1.25rem] bg-slate-900 flex items-center justify-center text-white font-black shadow-lg group-hover:rotate-6 transition-transform duration-300">
-                    <span class="text-xl tracking-tighter">E</span>
+                    <span class="text-xl tracking-tighter italic">E</span>
                 </div>
-                <div class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-[3px] border-white rounded-full">
-                </div>
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 border-[3px] border-white rounded-full"></div>
             </div>
             <div class="leading-none">
-                <h1 class="text-[13px] font-black text-slate-900 tracking-tighter uppercase">ERP Tekstil</h1>
-                <p class="text-[9px] uppercase font-black tracking-[0.2em] text-slate-300 mt-1">Core Engine</p>
+                <h1 class="text-[13px] font-black text-slate-900 tracking-tighter uppercase italic">ERP <span
+                        class="text-indigo-600">Tekstil</span></h1>
+                <p class="text-[9px] uppercase font-black tracking-[0.2em] text-slate-300 mt-1 italic">Core Engine</p>
             </div>
         </div>
     </div>
@@ -24,50 +24,51 @@
     {{-- NAVIGATION --}}
     <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-1 custom-scrollbar">
         @php
-    $menus = [
-        ['route' => 'dashboard', 'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
+            $sidebarMenus = [
+                ['route' => 'dashboard', 'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
 
-        ['header' => 'Master Data'],
-        ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
-        ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
-        ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
-        ['route' => 'customers.index', 'icon' => 'users-round', 'label' => 'Customers'], // Ditambahkan di sini
+                ['header' => 'Master Data'],
+                ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
+                ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
+                ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
+                ['route' => 'customers.index', 'icon' => 'users-round', 'label' => 'Customers'],
 
-        ['header' => 'Inventory Management'],
-        ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Balances'],
-        ['route' => 'inventory.movements', 'icon' => 'history', 'label' => 'Stock Movements'],
-        ['route' => 'goods-receipts.index', 'icon' => 'package-check', 'label' => 'Goods Receipt'],
+                ['header' => 'Inventory'],
+                ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Balances'],
+                ['route' => 'inventory.movements', 'icon' => 'history', 'label' => 'Stock Movements'],
+                ['route' => 'goods-receipts.index', 'icon' => 'package-check', 'label' => 'Goods Receipt'],
 
-        ['header' => 'Procurement'],
-        ['route' => 'purchase-requests.index', 'icon' => 'shopping-cart', 'label' => 'Purchase Request'],
-        ['route' => 'purchase-orders.index', 'icon' => 'shopping-bag', 'label' => 'Purchase Order'],
+                ['header' => 'Procurement'],
+                ['route' => 'purchase-requests.index', 'icon' => 'shopping-cart', 'label' => 'Purchase Request'],
+                ['route' => 'purchase-orders.index', 'icon' => 'shopping-bag', 'label' => 'Purchase Order'],
 
-        ['header' => 'Sales & Distribution'], // Header baru untuk alur kerja Customer
-        ['route' => 'sales-orders.index', 'icon' => 'file-spreadsheet', 'label' => 'Sales Order'],
-        ['route' => 'delivery-orders.index', 'icon' => 'truck-delivery', 'label' => 'Delivery Order'],
+                ['header' => 'Sales & Distribution'],
+                ['route' => 'sales-orders.index', 'icon' => 'file-spreadsheet', 'label' => 'Sales Order'],
+                ['route' => 'delivery-orders.index', 'icon' => 'truck', 'label' => 'Delivery Order'],
 
-        ['header' => 'Finance & Admin'],
-        ['route' => 'purchase-invoices.index', 'icon' => 'wallet', 'label' => 'Account Payable'],
-        ['route' => 'sales-invoices.index', 'icon' => 'badge-dollar-sign', 'label' => 'Account Receivable'], // Tambahan untuk Sales
+                ['header' => 'Finance & Admin'],
+                ['route' => 'purchase-invoices.index', 'icon' => 'wallet', 'label' => 'Account Payable'],
+                ['route' => 'sales-invoices.index', 'icon' => 'badge-dollar-sign', 'label' => 'Account Receivable'],
 
-        ['header' => 'User Management'],
-        ['route' => 'users.index', 'icon' => 'users', 'label' => 'User Management'],
-        ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Role Management'],
-    ];
-@endphp
+                ['header' => 'User Management'],
+                ['route' => 'users.index', 'icon' => 'users', 'label' => 'User Management'],
+                ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Permissions']
+            ];
+        @endphp
 
-        @foreach ($menus as $menu)
+        @foreach ($sidebarMenus as $menu)
             @if (isset($menu['header']))
                 <div class="pt-6 pb-2 px-4">
-                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.25em]">{{ $menu['header'] }}
+                    <p
+                        class="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] italic leading-none border-l-2 border-slate-100 pl-3">
+                        {{ $menu['header'] }}
                     </p>
                 </div>
             @else
                 @php
-                    // Logika Active State: Mencocokkan route utama dan sub-route (wildcard)
                     $isActive = request()->routeIs($menu['route'] . '*');
 
-                    // Override khusus untuk Inventory Stock Balances agar tetap aktif saat di sub-page in/out
+                    // Logic khusus untuk Inventory
                     if (
                         $menu['route'] === 'inventory.index' &&
                         (request()->routeIs('inventory.create-in') || request()->routeIs('inventory.create-out'))
@@ -77,7 +78,7 @@
                 @endphp
 
                 <a href="{{ Route::has($menu['route']) ? route($menu['route']) : '#' }}"
-                    class="group flex items-center justify-between px-3 py-2.5 rounded-2xl transition-all duration-300
+                    class="group flex items-center justify-between px-3 py-2.5 rounded-[1.25rem] transition-all duration-300
                           {{ $isActive
                               ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
                               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
@@ -85,15 +86,19 @@
                     <div class="flex items-center gap-3">
                         <div
                             class="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300
-                                    {{ $isActive ? 'bg-white/10' : 'bg-slate-50 group-hover:bg-white border border-transparent group-hover:border-slate-100 shadow-sm' }}">
+                                    {{ $isActive ? 'bg-indigo-500/20' : 'bg-slate-50 group-hover:bg-white border border-transparent group-hover:border-slate-100 shadow-sm' }}">
                             <i data-lucide="{{ $menu['icon'] }}"
-                                class="w-4 h-4 {{ $isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-900' }}"></i>
+                                class="w-4 h-4 {{ $isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-900' }}"></i>
                         </div>
-                        <span class="text-[12px] font-bold tracking-tight">{{ $menu['label'] }}</span>
+                        <span
+                            class="text-[11px] font-black uppercase tracking-tight italic {{ $isActive ? 'text-white' : 'text-slate-600' }}">
+                            {{ $menu['label'] }}
+                        </span>
                     </div>
 
                     @if ($isActive)
-                        <div class="w-1.5 h-5 bg-emerald-400 rounded-full shadow-[0_0_12px_rgba(52,211,153,0.6)] mr-1">
+                        <div
+                            class="w-1.5 h-1.5 bg-indigo-400 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.8)] mr-2 animate-pulse">
                         </div>
                     @endif
                 </a>
@@ -102,40 +107,39 @@
     </nav>
 
     {{-- USER PANEL --}}
-    <div class="p-6 mt-auto">
-        <div class="p-4 rounded-[2rem] bg-slate-900 border border-slate-800 shadow-2xl">
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    {{-- UI Avatars: Generate avatar berdasarkan nama user --}}
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=6366f1&color=fff"
-                        class="w-10 h-10 rounded-2xl border-2 border-slate-800 shadow-lg" alt="User">
+    <div class="p-4 mt-auto">
+        <div class="p-4 rounded-[2.5rem] bg-slate-50 border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="relative shrink-0">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0f172a&color=fff&bold=true"
+                        class="w-10 h-10 rounded-2xl border-2 border-white shadow-md" alt="User">
                     <span
-                        class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full shadow-sm"></span>
+                        class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-[3px] border-slate-50 rounded-full"></span>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-black text-white truncate uppercase tracking-tighter">
-                        {{ auth()->user()->name }}</p>
-                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">
+                    <p
+                        class="text-[11px] font-black text-slate-900 truncate uppercase italic tracking-tighter leading-none">
+                        {{ auth()->user()->name }}
+                    </p>
+                    <p class="text-[9px] text-indigo-500 font-black uppercase tracking-[0.15em] mt-1 italic">
                         {{ auth()->user()->roles->first()->name ?? 'Staff' }}
                     </p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 mt-4">
-                {{-- Tombol Pengaturan --}}
+            <div class="flex gap-2">
                 <a href="#"
-                    class="flex items-center justify-center py-2 bg-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-slate-700 transition-all group/settings">
+                    class="flex-1 flex items-center justify-center py-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all group/set">
                     <i data-lucide="settings"
-                        class="w-3.5 h-3.5 group-hover/settings:rotate-45 transition-transform duration-500"></i>
+                        class="w-3.5 h-3.5 group-hover/set:rotate-90 transition-transform duration-500"></i>
                 </a>
 
-                {{-- Tombol Logout --}}
-                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                <form method="POST" action="{{ route('logout') }}" class="flex-1">
                     @csrf
                     <button type="submit"
-                        class="w-full flex items-center justify-center py-2 bg-rose-500/10 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all group/logout">
+                        class="w-full flex items-center justify-center py-2.5 bg-rose-50 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all group/out">
                         <i data-lucide="log-out"
-                            class="w-3.5 h-3.5 group-hover/logout:translate-x-0.5 transition-transform"></i>
+                            class="w-3.5 h-3.5 group-hover/out:translate-x-1 transition-transform"></i>
                     </button>
                 </form>
             </div>
