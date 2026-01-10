@@ -33,7 +33,6 @@ class ProductController extends Controller
             $query->where('type', $request->type);
         }
 
-        // Urutkan berdasarkan stok terendah jika diminta (opsional untuk monitoring)
         $products = $query->latest()->paginate(10)->withQueryString();
 
         return view('products.index', [
@@ -57,15 +56,14 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'product_category_id' => 'required|exists:product_categories,id',
             'unit_id' => 'required|exists:units,id',
-            'type' => 'required|in:raw_material,semi_finished,finished',
+            'type' => 'required|in:raw_material,semi_finished,finished_goods',
             'is_active' => 'nullable|boolean',
-            'stock' => 'nullable|numeric|min:0', // Tambahkan validasi stok awal
+            'purchase_price' => 'required|numeric|min:0', // Tambahan Harga Beli
+            'selling_price' => 'required|numeric|min:0',  // Tambahan Harga Jual
             'specification' => 'nullable|string',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
-        // Set stok ke 0 jika tidak diisi
-        $validated['stock'] = $request->stock ?? 0;
 
         try {
             DB::beginTransaction();
@@ -97,9 +95,10 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'product_category_id' => 'required|exists:product_categories,id',
             'unit_id' => 'required|exists:units,id',
-            'type' => 'required|in:raw_material,semi_finished,finished',
+            'type' => 'required|in:raw_material,semi_finished,finished_goods',
             'is_active' => 'nullable|boolean',
-            'stock' => 'required|numeric|min:0', // Pastikan stok tetap tervalidasi saat update
+            'purchase_price' => 'required|numeric|min:0', // Tambahan Harga Beli
+            'selling_price' => 'required|numeric|min:0',  // Tambahan Harga Jual
             'specification' => 'nullable|string',
         ]);
 
@@ -122,6 +121,8 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            // Cek jika produk sudah digunakan di transaksi (misal PO atau Invoice) 
+            // Untuk mencegah error SQL Integrity Constraint
             $product->delete();
             return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {
