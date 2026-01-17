@@ -3,110 +3,107 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\StockLedger;
 use App\Models\Warehouse;
-use App\Models\StockMovement;
-use App\Models\ProductWarehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
-  // Menampilkan daftar saldo stok saat ini
-  public function index()
-  {
-    $stocks = ProductWarehouse::with(['product', 'warehouse'])->get();
-    return view('inventory.index', compact('stocks'));
-  }
+    /**
+     * Menampilkan daftar saldo stok saat ini.
+     */
+    public function index(Request $request)
+    {
+        $query = Product::with(['category', 'unit']);
 
-  // Form Barang Masuk
-  public function createIn()
-  {
-    $products = Product::all();
-    $warehouses = Warehouse::all();
-    return view('inventory.create-in', compact('products', 'warehouses'));
-  }
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('sku', 'like', '%' . $request->search . '%');
+        }
 
-  // Simpan Barang Masuk
-  public function storeIn(Request $request)
-  {
-    $request->validate([
-      'product_id' => 'required|exists:products,id',
-      'warehouse_id' => 'required|exists:warehouses,id',
-      'quantity' => 'required|numeric|min:0.001',
-      'reference' => 'required|string',
-    ]);
+        $products = $query->latest()->paginate(15);
 
-    StockMovement::create([
-      'product_id' => $request->product_id,
-      'warehouse_id' => $request->warehouse_id,
-      'quantity' => $request->quantity,
-      'type' => 'IN',
-      'reference' => $request->reference,
-      'created_by' => auth()->id(),
-    ]);
+        // Statistik sederhana untuk header
+        $stats = [
+            'total_skus' => Product::count(),
+            'low_stock_count' => Product::all()->filter(fn($p) => $p->stock_total <= $p->min_stock_level)->count(),
+            'total_movements_today' => StockLedger::whereDate('created_at', today())->count(),
+        ];
 
-    return redirect()->route('inventory.index')->with('success', 'Stok berhasil masuk.');
-  }
-
-  // Form Barang Keluar
-  public function createOut()
-  {
-    $products = Product::all();
-    $warehouses = Warehouse::all();
-    return view('inventory.create-out', compact('products', 'warehouses'));
-  }
-
-  // Simpan Barang Keluar
-  public function storeOut(Request $request)
-  {
-    $request->validate([
-      'product_id' => 'required|exists:products,id',
-      'warehouse_id' => 'required|exists:warehouses,id',
-      'quantity' => 'required|numeric|min:0.001',
-      'reference' => 'required|string',
-    ]);
-
-    // Proteksi: Cek stok di tabel saldo
-    $currentStock = StockMovement::getCurrentStock($request->product_id, $request->warehouse_id);
-
-    if ($currentStock < $request->quantity) {
-      return back()->with('error', 'Stok tidak mencukupi! Sisa stok: ' . $currentStock);
+        return view('inventory.index', compact('products', 'stats'));
     }
 
-    StockMovement::create([
-      'product_id' => $request->product_id,
-      'warehouse_id' => $request->warehouse_id,
-      'quantity' => $request->quantity,
-      'type' => 'OUT',
-      'reference' => $request->reference,
-      'created_by' => auth()->id(),
-    ]);
+    /**
+     * Form input mutasi stok.
+     */
+    public function create()
+    {
+        return view('inventory.create', [
+            'products' => Product::active()->orderBy('name')->get(),
+            'warehouses' => Warehouse::orderBy('name')->get(),
+            'types' => ['IN' => 'Barang Masuk (IN)', 'OUT' => 'Barang Keluar (OUT)']
+        ]);
+    }
 
-    return redirect()->route('inventory.index')->with('success', 'Stok berhasil dikeluarkan.');
-  }
+    /**
+     * Menyimpan transaksi ke Stock Ledger.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id'   => 'required|exists:products,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'quantity'     => 'required|integer|min:1',
+            'type'         => 'required|in:IN,OUT',
+            'reference'    => 'nullable|string|max:100',
+            'note'         => 'nullable|string',
+        ]);
 
-  // Tambahkan di dalam class InventoryController
+        try {
+            DB::beginTransaction();
 
-  public function movements()
-  {
-    // 1. Ambil data log mutasi dengan pagination
-    $movements = \App\Models\StockMutation::with(['item', 'warehouse', 'creator'])
-      ->latest()
-      ->paginate(20);
+            // 1. Ambil saldo terakhir produk tersebut
+            $lastBalance = StockLedger::where('product_id', $validated['product_id'])
+                ->orderBy('id', 'desc')
+                ->value('balance_after') ?? 0;
 
-    // 2. Hitung Total Masuk & Keluar (Bulan Ini)
-    // Menggunakan sum('qty') berdasarkan range tanggal bulan sekarang
-    $totalIn = \App\Models\StockMutation::where('mutation_type', 'IN')
-      ->whereMonth('created_at', now()->month)
-      ->whereYear('created_at', now()->year)
-      ->sum('qty');
+            // 2. Tentukan delta quantity (Positif jika IN, Negatif jika OUT)
+            $qtyDelta = ($validated['type'] === 'OUT') ? -$validated['quantity'] : $validated['quantity'];
 
-    $totalOut = \App\Models\StockMutation::where('mutation_type', 'OUT')
-      ->whereMonth('created_at', now()->month)
-      ->whereYear('created_at', now()->year)
-      ->sum('qty');
+            // 3. Simpan ke Ledger
+            StockLedger::create([
+                'product_id'    => $validated['product_id'],
+                'warehouse_id'  => $validated['warehouse_id'],
+                'user_id'       => auth()->id(), // Mencatat user yang input
+                'quantity'      => $qtyDelta,
+                'balance_after' => $lastBalance + $qtyDelta,
+                'type'          => $validated['type'],
+                'reference'     => $validated['reference'],
+                'note'          => $validated['note'],
+            ]);
 
-    // 3. Kirim semua variabel ke view
-    return view('inventory.movements', compact('movements', 'totalIn', 'totalOut'));
-  }
+            DB::commit();
+            return redirect()->route('inventory.index')->with('success', 'Transaksi stok berhasil dicatat.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Menampilkan histori kartu stok produk.
+     */
+    public function detail($id)
+    {
+        $product = Product::with(['category', 'unit'])->findOrFail($id);
+        
+        $movements = StockLedger::with(['warehouse', 'user'])
+            ->where('product_id', $id)
+            ->latest('id')
+            ->paginate(20);
+
+        return view('inventory.detail', compact('product', 'movements'));
+    }
 }

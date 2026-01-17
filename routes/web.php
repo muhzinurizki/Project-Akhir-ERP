@@ -47,11 +47,18 @@ Route::middleware(['auth'])->group(function () {
 
   // --- INVENTORY & STOCK ---
   Route::prefix('inventory')->name('inventory.')->group(function () {
+    // Menampilkan Saldo Stok (Index)
     Route::get('/stocks', [InventoryController::class, 'index'])->name('index');
-    Route::get('/stock-in', [InventoryController::class, 'createIn'])->name('create-in');
-    Route::post('/stock-in', [InventoryController::class, 'storeIn'])->name('store-in');
-    Route::get('/stock-out', [InventoryController::class, 'createOut'])->name('create-out');
-    Route::post('/stock-out', [InventoryController::class, 'storeOut'])->name('store-out');
+
+    // Form Input Stok (Single Entry untuk IN/OUT/ADJUST)
+    Route::get('/entry', [InventoryController::class, 'create'])->name('create');
+    Route::post('/entry', [InventoryController::class, 'store'])->name('store');
+
+    // Histori Pergerakan (Stock Ledger / Kartu Stok)
+    // Kita arahkan 'movements' ke detail produk tertentu agar lebih spesifik
+    Route::get('/movements/{id}', [InventoryController::class, 'detail'])->name('detail');
+
+    // Jika Anda ingin halaman yang menampilkan SEMUA pergerakan dari SEMUA produk:
     Route::get('/movements', [InventoryController::class, 'movements'])->name('movements');
   });
 

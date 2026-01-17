@@ -29,34 +29,36 @@
 
                 ['header' => 'Master Data'],
                 ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
-                // Penambahan Menu Baru
                 ['route' => 'product-categories.index', 'icon' => 'layers', 'label' => 'Product Categories'],
                 ['route' => 'units.index', 'icon' => 'scale', 'label' => 'Units'],
-                // ---
                 ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
                 ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
                 ['route' => 'customers.index', 'icon' => 'users-round', 'label' => 'Customers'],
 
-                ['header' => 'Inventory'],
-                ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Balances'],
-                ['route' => 'inventory.movements', 'icon' => 'history', 'label' => 'Stock Movements'],
+                ['header' => 'Inventory Management'],
+                // Ini adalah Modul Gabungan (Stock Ledger) yang kita buat
+                ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Ledger'],
+                // Form Input Manual (Stock Entry) yang baru saja selesai
+                ['route' => 'inventory.create', 'icon' => 'plus-square', 'label' => 'Stock Entry'],
+                // Placeholder untuk modul transfer barang antar gudang
+                ['route' => 'inventory.transfer', 'icon' => 'arrow-right-left', 'label' => 'Internal Transfer'],
                 ['route' => 'goods-receipts.index', 'icon' => 'package-check', 'label' => 'Goods Receipt'],
 
                 ['header' => 'Procurement'],
-                ['route' => 'purchase-requests.index', 'icon' => 'shopping-cart', 'label' => 'Purchase Request'],
+                ['route' => 'purchase-requests.index', 'icon' => 'clipboard-list', 'label' => 'Purchase Request'],
                 ['route' => 'purchase-orders.index', 'icon' => 'shopping-bag', 'label' => 'Purchase Order'],
 
                 ['header' => 'Sales & Distribution'],
                 ['route' => 'sales-orders.index', 'icon' => 'file-spreadsheet', 'label' => 'Sales Order'],
                 ['route' => 'delivery-orders.index', 'icon' => 'truck', 'label' => 'Delivery Order'],
 
-                ['header' => 'Finance & Admin'],
+                ['header' => 'Finance & Accounting'],
                 ['route' => 'purchase-invoices.index', 'icon' => 'wallet', 'label' => 'Account Payable'],
                 ['route' => 'sales-invoices.index', 'icon' => 'badge-dollar-sign', 'label' => 'Account Receivable'],
 
                 ['header' => 'User Management'],
-                ['route' => 'users.index', 'icon' => 'users', 'label' => 'User Management'],
-                ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Permissions']
+                ['route' => 'users.index', 'icon' => 'users', 'label' => 'User List'],
+                ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles & Permissions']
             ];
         @endphp
 
