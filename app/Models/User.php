@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,14 +10,8 @@ use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'employee_code',
         'name',
@@ -29,21 +22,11 @@ class User extends Authenticatable
         'is_active'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -53,14 +36,30 @@ class User extends Authenticatable
         ];
     }
 
+    // --- RELASI TRANSKASIONAL ---
+
     /**
-     * Boot function untuk menangani logic otomatis saat model berinteraksi dengan DB.
+     * Mendapatkan daftar Sales Order yang dibuat oleh user ini.
      */
+    public function salesOrders()
+    {
+        return $this->hasMany(SalesOrder::class);
+    }
+
+    /**
+     * Mendapatkan daftar pengiriman yang diproses oleh user ini.
+     */
+    public function deliveryOrders()
+    {
+        return $this->hasMany(DeliveryOrder::class);
+    }
+
+    // --- AUTOMATION LOGIC ---
+
     protected static function boot()
     {
         parent::boot();
 
-        // Trigger otomatis sebelum data User baru disimpan
         static::creating(function ($user) {
             if (empty($user->employee_code)) {
                 $user->employee_code = self::generateEmployeeCode();
@@ -68,16 +67,11 @@ class User extends Authenticatable
         });
     }
 
-    /**
-     * Logika untuk menghasilkan kode karyawan otomatis.
-     * Format: EMP-2026-0001
-     */
     public static function generateEmployeeCode()
     {
         $year = date('Y');
         $prefix = "EMP-" . $year . "-";
 
-        // Mengambil user terakhir yang memiliki kode dengan prefix tahun ini
         $lastUser = self::where('employee_code', 'like', $prefix . '%')
             ->orderBy('employee_code', 'desc')
             ->first();
@@ -85,13 +79,21 @@ class User extends Authenticatable
         if (!$lastUser) {
             $number = 1;
         } else {
-            // Mengambil 4 digit angka terakhir dari kode terakhir
-            $lastCode = $lastUser->employee_code;
-            $lastNumber = (int) substr($lastCode, -4);
+            // Mengambil angka setelah prefix (format tetap terjaga meski tahun berganti)
+            $lastNumber = (int) Str::afterLast($lastUser->employee_code, '-');
             $number = $lastNumber + 1;
         }
 
-        // Contoh hasil: EMP-2026-0001
         return $prefix . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+
+    // --- SCOPES & HELPERS ---
+
+    /**
+     * Scope untuk hanya mengambil user yang aktif.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

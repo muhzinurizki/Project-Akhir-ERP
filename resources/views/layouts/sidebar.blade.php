@@ -22,96 +22,107 @@
     </div>
 
     {{-- NAVIGATION --}}
+    {{-- NAVIGATION --}}
     <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-1 custom-scrollbar">
         @php
             $sidebarMenus = [
-                ['route' => 'dashboard', 'icon' => 'layout-dashboard', 'label' => 'Dashboard'],
+                ['route' => 'dashboard', 'icon' => 'layout-dashboard', 'label' => 'Dashboard', 'perm' => null],
 
-                ['header' => 'Master Data'],
-                ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products'],
-                ['route' => 'product-categories.index', 'icon' => 'layers', 'label' => 'Product Categories'],
-                ['route' => 'units.index', 'icon' => 'scale', 'label' => 'Units'],
-                ['route' => 'warehouses.index', 'icon' => 'warehouse', 'label' => 'Warehouses'],
-                ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers'],
-                ['route' => 'customers.index', 'icon' => 'users-round', 'label' => 'Customers'],
+                ['header' => 'Master Data', 'perm' => 'master.view'],
+                ['route' => 'products.index', 'icon' => 'package', 'label' => 'Products', 'perm' => 'master.view'],
+                ['route' => 'suppliers.index', 'icon' => 'truck', 'label' => 'Suppliers', 'perm' => 'master.view'],
+                [
+                    'route' => 'customers.index',
+                    'icon' => 'users-round',
+                    'label' => 'Customers',
+                    'perm' => 'master.view'
+                ],
 
-                ['header' => 'Inventory Management'],
-                // Ini adalah Modul Gabungan (Stock Ledger) yang kita buat
-                ['route' => 'inventory.index', 'icon' => 'boxes', 'label' => 'Stock Ledger'],
-                // Form Input Manual (Stock Entry) yang baru saja selesai
-                ['route' => 'inventory.create', 'icon' => 'plus-square', 'label' => 'Stock Entry'],
-                // Placeholder untuk modul transfer barang antar gudang
-                ['route' => 'inventory.transfer', 'icon' => 'arrow-right-left', 'label' => 'Internal Transfer'],
-                ['route' => 'goods-receipts.index', 'icon' => 'package-check', 'label' => 'Goods Receipt'],
+                ['header' => 'Inventory', 'perm' => 'inventory.view'],
+                [
+                    'route' => 'inventory.index',
+                    'icon' => 'boxes',
+                    'label' => 'Stock Ledger',
+                    'perm' => 'inventory.view'
+                ],
+                [
+                    'route' => 'inventory.create',
+                    'icon' => 'plus-square',
+                    'label' => 'Stock Entry',
+                    'perm' => 'inventory.transfer'
+                ],
 
-                ['header' => 'Procurement'],
-                ['route' => 'purchase-requests.index', 'icon' => 'clipboard-list', 'label' => 'Purchase Request'],
-                ['route' => 'purchase-orders.index', 'icon' => 'shopping-bag', 'label' => 'Purchase Order'],
+                ['header' => 'Procurement', 'perm' => 'purchase_request.view'],
+                [
+                    'route' => 'purchase-requests.index',
+                    'icon' => 'clipboard-list',
+                    'label' => 'Purchase Request',
+                    'perm' => 'purchase_request.view'
+                ],
+                [
+                    'route' => 'purchase-orders.index',
+                    'icon' => 'shopping-bag',
+                    'label' => 'Purchase Order',
+                    'perm' => 'purchase_order.create'
+                ],
 
-                ['header' => 'Sales & Distribution'],
-                ['route' => 'sales-orders.index', 'icon' => 'file-spreadsheet', 'label' => 'Sales Order'],
-                ['route' => 'delivery-orders.index', 'icon' => 'truck', 'label' => 'Delivery Order'],
+                ['header' => 'Sales', 'perm' => 'sales_order.approve'],
+                [
+                    'route' => 'sales-orders.index',
+                    'icon' => 'file-spreadsheet',
+                    'label' => 'Sales Order',
+                    'perm' => 'sales_order.approve'
+                ],
+                [
+                    'route' => 'delivery-orders.index',
+                    'icon' => 'truck',
+                    'label' => 'Delivery Order',
+                    'perm' => 'delivery_order.create'
+                ],
 
-                ['header' => 'Finance & Accounting'],
-                ['route' => 'purchase-invoices.index', 'icon' => 'wallet', 'label' => 'Account Payable'],
-                ['route' => 'sales-invoices.index', 'icon' => 'badge-dollar-sign', 'label' => 'Account Receivable'],
-
-                ['header' => 'User Management'],
-                ['route' => 'users.index', 'icon' => 'users', 'label' => 'User List'],
-                ['route' => 'roles.index', 'icon' => 'shield-check', 'label' => 'Roles & Permissions']
+                ['header' => 'Administration', 'perm' => 'user.manage'],
+                ['route' => 'users.index', 'icon' => 'users', 'label' => 'User List', 'perm' => 'user.manage'],
+                [
+                    'route' => 'roles.index',
+                    'icon' => 'shield-check',
+                    'label' => 'Roles & Permissions',
+                    'perm' => 'user.manage'
+                ]
             ];
         @endphp
 
         @foreach ($sidebarMenus as $menu)
             @if (isset($menu['header']))
-                <div class="pt-6 pb-2 px-4">
-                    <p
-                        class="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] italic leading-none border-l-2 border-slate-100 pl-3">
-                        {{ $menu['header'] }}
-                    </p>
-                </div>
-            @else
-                @php
-                    $isActive = request()->routeIs($menu['route'] . '*');
-
-                    // Logic khusus untuk Inventory
-                    if (
-                        $menu['route'] === 'inventory.index' &&
-                        (request()->routeIs('inventory.create-in') || request()->routeIs('inventory.create-out'))
-                    ) {
-                        $isActive = true;
-                    }
-                @endphp
-
-                <a href="{{ Route::has($menu['route']) ? route($menu['route']) : '#' }}"
-                    class="group flex items-center justify-between px-3 py-2.5 rounded-[1.25rem] transition-all duration-300
-                          {{ $isActive
-                              ? 'bg-slate-900 text-white shadow-xl shadow-slate-200'
-                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}">
-
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300
-                                    {{ $isActive ? 'bg-indigo-500/20' : 'bg-slate-50 group-hover:bg-white border border-transparent group-hover:border-slate-100 shadow-sm' }}">
-                            <i data-lucide="{{ $menu['icon'] }}"
-                                class="w-4 h-4 {{ $isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-900' }}"></i>
-                        </div>
-                        <span
-                            class="text-[11px] font-black uppercase tracking-tight italic {{ $isActive ? 'text-white' : 'text-slate-600' }}">
-                            {{ $menu['label'] }}
-                        </span>
+                @can($menu['perm'])
+                    <div class="pt-6 pb-2 px-4">
+                        <p
+                            class="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] italic leading-none border-l-2 border-slate-100 pl-3">
+                            {{ $menu['header'] }}
+                        </p>
                     </div>
-
-                    @if ($isActive)
-                        <div
-                            class="w-1.5 h-1.5 bg-indigo-400 rounded-full shadow-[0_0_12px_rgba(99,102,241,0.8)] mr-2 animate-pulse">
+                @endcan
+            @else
+                @if ($menu['perm'] == null || auth()->user()->can($menu['perm']))
+                    @php $isActive = request()->routeIs($menu['route'] . '*'); @endphp
+                    <a href="{{ route($menu['route']) }}"
+                        class="group flex items-center justify-between px-3 py-2.5 rounded-[1.25rem] transition-all duration-300
+                          {{ $isActive ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-500 hover:bg-slate-50' }}">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-9 h-9 rounded-xl flex items-center justify-center {{ $isActive ? 'bg-indigo-500/20' : 'bg-slate-50' }}">
+                                <i data-lucide="{{ $menu['icon'] }}"
+                                    class="w-4 h-4 {{ $isActive ? 'text-indigo-400' : 'text-slate-400' }}"></i>
+                            </div>
+                            <span
+                                class="text-[11px] font-black uppercase italic {{ $isActive ? 'text-white' : 'text-slate-600' }}">
+                                {{ $menu['label'] }}
+                            </span>
                         </div>
-                    @endif
-                </a>
+                    </a>
+                @endif
             @endif
         @endforeach
     </nav>
-
     {{-- USER PANEL --}}
     <div class="p-4 mt-auto">
         <div class="p-4 rounded-[2.5rem] bg-slate-50 border border-slate-100 shadow-sm">
@@ -124,28 +135,27 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p
-                        class="text-[11px] font-black text-slate-900 truncate uppercase italic tracking-tighter leading-none">
+                        class="text-[11px] font-bold text-slate-900 truncate uppercase italic tracking-tighter leading-none">
                         {{ auth()->user()->name }}
                     </p>
                     <p class="text-[9px] text-indigo-500 font-black uppercase tracking-[0.15em] mt-1 italic">
-                        {{ auth()->user()->roles->first()->name ?? 'Staff' }}
+                        {{-- Menampilkan Role Pertama User secara aman --}}
+                        {{ auth()->user()->roles->first()->name ?? 'No Role' }}
                     </p>
                 </div>
             </div>
 
             <div class="flex gap-2">
-                <a href="#"
-                    class="flex-1 flex items-center justify-center py-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all group/set">
-                    <i data-lucide="settings"
-                        class="w-3.5 h-3.5 group-hover/set:rotate-90 transition-transform duration-500"></i>
+                <a href="{{ route('profile.edit') }}"
+                    class="flex-1 flex items-center justify-center py-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 transition-all">
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}" class="flex-1">
                     @csrf
                     <button type="submit"
-                        class="w-full flex items-center justify-center py-2.5 bg-rose-50 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all group/out">
-                        <i data-lucide="log-out"
-                            class="w-3.5 h-3.5 group-hover/out:translate-x-1 transition-transform"></i>
+                        class="w-full flex items-center justify-center py-2.5 bg-rose-50 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
                     </button>
                 </form>
             </div>
