@@ -46,7 +46,11 @@ class RolePermissionSeeder extends Seeder
                 'production_progress.create',
 
                 // QC
-                'qc.process',
+                'qc.view',                 // header QC
+                'qc.inspection.view',      // Product Inspection
+                'qc.report.view',          // QC Reports
+                'qc.process',              // proses QC (existing)
+
 
                 // Sales
                 'quotation.create',

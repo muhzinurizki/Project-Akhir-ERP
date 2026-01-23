@@ -38,6 +38,25 @@
                     'perm' => 'master.view'
                 ],
 
+                // QUALITY CONTROL (QC)
+                [
+                    'header' => 'Quality Control',
+                    'perm'   => 'qc.view'
+                ],
+                [
+                    'route' => 'qc-inspections.index',
+                    'icon'  => 'package-check',
+                    'label' => 'Product Inspection',
+                    'perm'  => 'qc.inspection.view'
+                ],
+                [
+                    'route' => 'qc-reports.index',
+                    'icon'  => 'clipboard-list',
+                    'label' => 'QC Reports',
+                    'perm'  => 'qc.report.view'
+                ],
+
+
                 ['header' => 'Inventory', 'perm' => 'inventory.view'],
                 [
                     'route' => 'inventory.index',

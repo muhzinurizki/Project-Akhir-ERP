@@ -51,4 +51,8 @@ class Product extends Model
     {
         return $query->where('is_active', true);
     }
+    public function qcInspections()
+    {
+        return $this->hasMany(QcInspection::class);
+    }
 }

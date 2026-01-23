@@ -10,7 +10,7 @@ use App\Http\Controllers\{
     SalesOrderController, DeliveryOrderController, ArPaymentController,
     RoleController
 };
-
+use App\Http\Controllers\QC\{QcInspectionController,QcReportController};
 Route::get('/', fn() => redirect()->route('dashboard'));
 
 Route::middleware(['auth'])->group(function () {
