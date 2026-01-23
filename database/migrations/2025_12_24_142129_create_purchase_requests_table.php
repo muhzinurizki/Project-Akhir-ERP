@@ -5,22 +5,26 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void
-{
-    Schema::create('purchase_requests', function (Blueprint $table) {
-        $table->id();
-        $table->string('pr_number')->unique(); // Contoh: PR/2026/001
-        $table->date('request_date');
-        $table->foreignId('user_id')->constrained(); // Siapa yang minta
-        $table->text('note')->nullable();
-        // Status: PENDING, APPROVED, REJECTED, COMPLETED
-        $table->string('status')->default('PENDING');
-        $table->timestamps();
-    });
-}
+  public function up(): void
+  {
+    Schema::create('purchase_requests', function (Blueprint $col) {
+      $col->id();
+      $col->string('pr_number')->unique();
+      $col->date('request_date');
+      $col->foreignId('user_id')->constrained('users'); // Pemohon
+      $col->text('note')->nullable();
 
-    public function down(): void
-    {
-        Schema::dropIfExists('purchase_requests');
-    }
+      // Status Logic
+      $col->enum('status', ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'])->default('PENDING');
+      $col->foreignId('approved_by')->nullable()->constrained('users'); // Siapa yang approve
+      $col->timestamp('approved_at')->nullable();
+
+      $col->timestamps();
+    });
+  }
+
+  public function down(): void
+  {
+    Schema::dropIfExists('purchase_requests');
+  }
 };

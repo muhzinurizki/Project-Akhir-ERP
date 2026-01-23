@@ -2,12 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
-    DashboardController, UserController, ProfileController, ProductController,
-    ProductCategoryController, UnitController, SupplierController, CustomerController,
-    WarehouseController, InventoryController, PurchaseRequestController,
-    PurchaseOrderController, GoodsReceiptController, PurchaseInvoiceController,
-    SalesInvoiceController, SalesOrderController, DeliveryOrderController,
-    ArPaymentController, RoleController
+    DashboardController, UserController, ProfileController,
+    ProductController, ProductCategoryController, UnitController,
+    SupplierController, CustomerController, WarehouseController,
+    InventoryController, PurchaseRequestController, PurchaseOrderController,
+    GoodsReceiptController, PurchaseInvoiceController, SalesInvoiceController,
+    SalesOrderController, DeliveryOrderController, ArPaymentController,
+    RoleController
 };
 
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -16,14 +17,14 @@ Route::middleware(['auth'])->group(function () {
 
     // --- 0. DASHBOARD & PROFILE ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
     });
 
-    // --- 1. MASTER DATA (Dibatasi permission master.view) ---
+    // --- 1. MASTER DATA ---
     Route::middleware(['permission:master.view'])->group(function () {
         Route::resource('products', ProductController::class);
         Route::resource('suppliers', SupplierController::class);
@@ -33,12 +34,12 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('units', UnitController::class);
     });
 
-    // --- 2. INVENTORY MANAGEMENT ---
+    // --- 2. INVENTORY MANAGEMENT (Disederhanakan) ---
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('/stocks', [InventoryController::class, 'index'])->name('index');
+        Route::get('/stocks/{id}', [InventoryController::class, 'detail'])->name('detail');
         Route::get('/movements', [InventoryController::class, 'movements'])->name('movements');
-        
-        // Hanya Admin & Warehouse yang bisa entry/transfer
+
         Route::middleware(['role:Admin|Warehouse'])->group(function () {
             Route::get('/entry', [InventoryController::class, 'create'])->name('create');
             Route::post('/entry', [InventoryController::class, 'store'])->name('store');
@@ -47,25 +48,28 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    // --- 3. PROCUREMENT ---
+    // --- 3. PROCUREMENT (PURCHASING) ---
+    
+    // Purchase Requests
+    Route::prefix('purchase-requests')->name('purchase-requests.')->group(function () {
+        Route::patch('{id}/update-status', [PurchaseRequestController::class, 'updateStatus'])->name('update-status');
+        // Tambahan fitur submit jika diperlukan
+        Route::post('{id}/submit', [PurchaseRequestController::class, 'submit'])->name('submit');
+    });
     Route::resource('purchase-requests', PurchaseRequestController::class);
+
+    // Purchase Orders (SOLUSI ERROR SIDEBAR)
     Route::resource('purchase-orders', PurchaseOrderController::class);
     Route::resource('goods-receipts', GoodsReceiptController::class);
 
     // --- 4. SALES & DISTRIBUTION ---
     Route::prefix('sales-orders')->name('sales-orders.')->group(function () {
-        Route::get('/', [SalesOrderController::class, 'index'])->name('index');
-        Route::get('/create', [SalesOrderController::class, 'create'])->name('create');
-        Route::post('/store', [SalesOrderController::class, 'store'])->name('store');
-        Route::get('/{id}', [SalesOrderController::class, 'show'])->name('show');
-        
-        // Hanya Admin & Manager yang bisa confirm/cancel
         Route::middleware(['role:Admin|Manager'])->group(function () {
-            Route::post('/{id}/confirm', [SalesOrderController::class, 'confirm'])->name('confirm');
-            Route::post('/{id}/cancel', [SalesOrderController::class, 'cancel'])->name('cancel');
+            Route::post('{id}/confirm', [SalesOrderController::class, 'confirm'])->name('confirm');
+            Route::post('{id}/cancel', [SalesOrderController::class, 'cancel'])->name('cancel');
         });
     });
-
+    Route::resource('sales-orders', SalesOrderController::class);
     Route::resource('delivery-orders', DeliveryOrderController::class);
 
     // --- 5. FINANCE (AP/AR) ---
@@ -75,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('ar-payments', ArPaymentController::class);
     });
 
-    // --- 6. ADMINISTRATION (Hanya Admin) ---
+    // --- 6. ADMINISTRATION ---
     Route::middleware(['role:Admin'])->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('roles', RoleController::class);

@@ -3,43 +3,49 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequest extends Model
 {
-    protected $fillable = [
-        'pr_number',
-        'request_date',
-        'user_id',
-        'note',
-        'status',
-    ];
+  use HasFactory;
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+  protected $fillable = [
+    'pr_number',
+    'request_date',
+    'user_id',
+    'note',
+    'status',       // Pastikan ada
+    'approved_by',  // Pastikan ada
+    'approved_at'   // Pastikan ada
+  ];
 
-    public function items(): HasMany
-    {
-        return $this->hasMany(PurchaseRequestItem::class);
-    }
+  protected $casts = [
+    'request_date' => 'date',
+    'approved_at' => 'datetime',
+  ];
 
-    // RELASI PENTING: Untuk mengecek apakah PR sudah jadi PO
-    public function purchaseOrder(): HasOne
-    {
-        return $this->hasOne(PurchaseOrder::class);
-    }
+  // Otomatis isi PR Number & User ID saat create
+  protected static function booted()
+  {
+    static::creating(function ($pr) {
+      $pr->user_id = Auth::id();
+      if (!$pr->pr_number) {
+        $pr->pr_number = 'PR-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(2)));
+      }
+    });
+  }
 
-    public static function generatePrNumber()
-    {
-        $date = now()->format('Ymd');
-        $count = self::whereDate('created_at', now()->today())->count() + 1;
-        return "PR/{$date}/" . str_pad($count, 4, '0', STR_PAD_LEFT);
-    }
-
-    public function approve() { $this->update(['status' => 'APPROVED']); }
-    public function reject() { $this->update(['status' => 'REJECTED']); }
+  public function items()
+  {
+    return $this->hasMany(PurchaseRequestItem::class);
+  }
+  public function user()
+  {
+    return $this->belongsTo(User::class, 'user_id');
+  }
+  public function approver()
+  {
+    return $this->belongsTo(User::class, 'approved_by');
+  }
 }

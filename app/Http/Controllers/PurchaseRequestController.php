@@ -1,95 +1,98 @@
 <?php
 
-namespace App\Http\Controllers; // Sesuaikan folder jika perlu
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\PurchaseRequest;
-use App\Models\PurchaseRequestItem;
 use App\Models\Product;
-use App\Models\Warehouse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestController extends Controller
 {
-    public function index()
-    {
-        // Sesuaikan 'requester' dengan 'user' (relasi di model)
-        $prs = PurchaseRequest::with(['user'])
-            ->latest()
-            ->paginate(15);
+  public function index()
+  {
+    // Ambil data PR untuk tabel
+    $prs = PurchaseRequest::with('user')->latest()->paginate(10);
 
-        return view('purchase-requests.index', compact('prs'));
-    }
+    // Ambil data Product untuk jaga-jaga jika View Index memanggilnya (misal di Modal)
+    $products = Product::orderBy('name')->get();
 
-    public function create()
-    {
-        return view('purchase-requests.create', [
-            'products' => Product::all(), // Pastikan kolom is_active ada di DB jika ingin filter
-            'warehouses' => Warehouse::all(),
+    return view('purchase-requests.index', compact('prs', 'products'));
+  }
+
+  public function create()
+  {
+    $products = Product::orderBy('name')->get();
+    return view('purchase-requests.create', compact('products'));
+  }
+
+  public function store(Request $request)
+  {
+    $request->validate([
+      'request_date' => 'required|date',
+      'items' => 'required|array|min:1',
+      'items.*.product_id' => 'required|exists:products,id',
+      'items.*.qty' => 'required|numeric|min:1',
+    ]);
+
+    try {
+      return DB::transaction(function () use ($request) {
+        $pr = PurchaseRequest::create([
+          'request_date' => $request->request_date,
+          'note' => $request->note,
+          'status' => 'PENDING',
         ]);
-    }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'request_date' => 'required|date',
-            'note' => 'nullable|string|max:500',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Menggunakan method static dari model yang kita buat tadi
-            $pr = PurchaseRequest::create([
-                'pr_number' => PurchaseRequest::generatePrNumber(),
-                'request_date' => $validated['request_date'],
-                'user_id' => Auth::id(),
-                'status' => 'PENDING',
-                'note' => $validated['note'],
-            ]);
-
-            foreach ($validated['items'] as $item) {
-                $product = Product::find($item['product_id']);
-
-                PurchaseRequestItem::create([
-                    'purchase_request_id' => $pr->id,
-                    'product_id' => $item['product_id'],
-                    'qty' => $item['quantity'],
-                    // Menyimpan nama satuan saat ini agar histori aman jika satuan produk diubah
-                    'unit_name' => $product->unit->name ?? 'Unit',
-                ]);
-            }
-
-            DB::commit();
-            return redirect()->route('purchase-requests.index')
-                             ->with('success', "PR {$pr->pr_number} berhasil dibuat.");
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        foreach ($request->items as $item) {
+          $product = Product::findOrFail($item['product_id']);
+          $pr->items()->create([
+            'product_id' => $item['product_id'],
+            'qty' => $item['qty'],
+            'unit_name' => $product->unit_name ?? 'PCS',
+          ]);
         }
+
+        return redirect()->route('purchase-requests.index')->with('success', 'PR Created Successfully');
+      });
+    } catch (\Exception $e) {
+      return back()->with('error', 'Gagal: ' . $e->getMessage())->withInput();
     }
+  }
 
-    public function show($id)
-    {
-        $pr = PurchaseRequest::with(['items.product.unit', 'user'])->findOrFail($id);
-        return view('purchase-requests.show', compact('pr'));
+  public function show($id)
+  {
+    $pr = PurchaseRequest::with(['items.product', 'user', 'approver'])->findOrFail($id);
+    return view('purchase-requests.show', compact('pr'));
+  }
+
+  public function updateStatus(Request $request, $id)
+  {
+    $request->validate([
+      'status' => 'required|in:APPROVED,REJECTED',
+      'reason' => 'required_if:status,REJECTED|nullable|string|max:255'
+    ]);
+
+    $pr = PurchaseRequest::findOrFail($id);
+
+    try {
+      DB::transaction(function () use ($request, $pr) {
+        $updateData = [
+          'status' => $request->status,
+          'approved_by' => Auth::id(),
+          'approved_at' => now(),
+        ];
+
+        if ($request->status === 'REJECTED') {
+          $updateData['note'] = $pr->note . "\n[REASON]: " . $request->reason;
+        }
+
+        $pr->update($updateData);
+      });
+
+      return redirect()->route('purchase-requests.show', $id)->with('success', 'Status updated!');
+    } catch (\Exception $e) {
+      return back()->with('error', 'Update failed: ' . $e->getMessage());
     }
-
-    // Method tambahan untuk aksi Status (Simple implementation)
-    public function updateStatus(Request $request, PurchaseRequest $purchaseRequest)
-    {
-        $request->validate(['status' => 'required|in:APPROVED,REJECTED']);
-
-        $purchaseRequest->update([
-            'status' => $request->status
-        ]);
-
-        return back()->with('success', 'Status PR berhasil diperbarui.');
-    }
+  }
 }

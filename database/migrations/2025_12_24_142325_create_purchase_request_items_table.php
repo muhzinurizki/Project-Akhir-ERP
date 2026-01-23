@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
   public function up(): void
   {
-    Schema::create('purchase_request_items', function (Blueprint $table) {
-      $table->id();
-      $table->foreignId('purchase_request_id')->constrained()->onDelete('cascade');
-      $table->foreignId('product_id')->constrained(); // Barang yang diminta
-      $table->decimal('qty', 15, 2);
-      $table->string('unit_name'); // Simpan nama satuan saat itu (untuk record)
-      $table->timestamps();
+    Schema::create('purchase_request_items', function (Blueprint $col) {
+      $col->id();
+      $col->foreignId('purchase_request_id')->constrained('purchase_requests')->onDelete('cascade');
+      $col->foreignId('product_id')->constrained('products');
+      $col->decimal('qty', 15, 2);
+      $col->string('unit_name'); // Denormalisasi unit agar history tetap aman
+      $col->timestamps();
     });
   }
 
