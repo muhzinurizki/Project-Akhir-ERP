@@ -84,6 +84,23 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('roles', RoleController::class);
     });
+     // --- 7. QUALITY CONTROL ---
+    Route::middleware(['auth'])->prefix('qc')->group(function () {
+        Route::get('/inspections', [QcInspectionController::class, 'index'])
+            ->name('qc-inspections.index');
+
+        Route::get('/inspections/{product}/create', [QcInspectionController::class, 'create'])
+            ->name('qc-inspections.create');
+
+        Route::post('/inspections', [QcInspectionController::class, 'store'])
+            ->name('qc-inspections.store');
+
+        Route::get('/reports', [QcReportController::class, 'index'])
+            ->name('qc-reports.index');
+
+        Route::get('/reports/export', [QcReportController::class, 'export'])
+            ->name('qc-reports.export');
+    });
 });
 
 require __DIR__ . '/auth.php';
